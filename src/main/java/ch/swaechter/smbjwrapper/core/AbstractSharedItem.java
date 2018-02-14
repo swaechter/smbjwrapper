@@ -73,6 +73,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
         return smbPath.toUncPath();
     }
 
+    @Override
     public T getParentPath() {
         if (!getName().equals(smbPath.getPath())) {
             String parentPath = smbPath.getPath().substring(0, smbPath.getPath().length() - getName().length() - 1);
@@ -82,6 +83,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
         }
     }
 
+    @Override
     public T getRootPath() {
         return createSharedNodeItem("");
     }
