@@ -16,11 +16,7 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     }
 
     public SharedDirectory(String serverName, String shareName, AuthenticationContext authenticationContext) throws IOException {
-        super(serverName, shareName, "", authenticationContext); // TODO: Add share root path
-    }
-
-    protected SharedDirectory(AbstractSharedItem abstractSharedItem) {
-        super(abstractSharedItem, ""); // TODO: Add share root path
+        super(serverName, shareName, "", authenticationContext);
     }
 
     protected SharedDirectory(AbstractSharedItem abstractSharedItem, String pathName) {
