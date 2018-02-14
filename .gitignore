@@ -1,0 +1,6 @@
+# Build system
+target/
+
+# IDE: IntelliJ IDEA
+.idea/
+*.iml
