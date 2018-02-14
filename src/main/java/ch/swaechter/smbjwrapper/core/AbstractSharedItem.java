@@ -42,7 +42,10 @@ public abstract class AbstractSharedItem implements SharedItem {
         this.smbPath = new SmbPath(otherSmbPath.getHostname(), otherSmbPath.getShareName(), pathName);
     }
 
-    public abstract boolean isExisting();
+    @Override
+    public boolean isExisting() {
+        return isDirectory() || isFile();
+    }
 
     @Override
     public boolean isDirectory() {

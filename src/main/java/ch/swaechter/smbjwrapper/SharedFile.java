@@ -25,11 +25,6 @@ public final class SharedFile extends AbstractSharedItem {
     }
 
     @Override
-    public boolean isExisting() {
-        return isFile();
-    }
-
-    @Override
     public SharedDirectory getParentPath() {
         if (!getName().equals(smbPath.getPath())) {
             String parentPath = smbPath.getPath().substring(0, smbPath.getPath().length() - getName().length() - 1);
