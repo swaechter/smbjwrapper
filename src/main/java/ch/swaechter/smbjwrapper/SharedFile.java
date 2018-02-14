@@ -14,7 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.EnumSet;
 
-public final class SharedFile extends AbstractSharedItem {
+public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
 
     public SharedFile(String serverName, String shareName, String pathName, AuthenticationContext authenticationContext) throws IOException {
         super(serverName, shareName, pathName, authenticationContext);
@@ -22,21 +22,6 @@ public final class SharedFile extends AbstractSharedItem {
 
     protected SharedFile(AbstractSharedItem abstractSharedItem, String pathName) {
         super(abstractSharedItem, pathName);
-    }
-
-    @Override
-    public SharedDirectory getParentPath() {
-        if (!getName().equals(smbPath.getPath())) {
-            String parentPath = smbPath.getPath().substring(0, smbPath.getPath().length() - getName().length() - 1);
-            return new SharedDirectory(this, parentPath);
-        } else {
-            return getRootPath();
-        }
-    }
-
-    @Override
-    public SharedDirectory getRootPath() {
-        return new SharedDirectory(this);
     }
 
     public void createFile() {
@@ -56,5 +41,10 @@ public final class SharedFile extends AbstractSharedItem {
     public OutputStream getOutputStream() {
         File file = diskShare.openFile(smbPath.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         return new SharedOutputStream(file);
+    }
+
+    @Override
+    protected SharedDirectory createSharedNodeItem(String pathName) {
+        return new SharedDirectory(this, pathName);
     }
 }

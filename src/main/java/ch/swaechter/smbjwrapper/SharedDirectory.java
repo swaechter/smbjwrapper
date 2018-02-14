@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class SharedDirectory extends AbstractSharedItem {
+public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
 
     public SharedDirectory(String serverName, String shareName, String pathName, AuthenticationContext authenticationContext) throws IOException {
         super(serverName, shareName, pathName, authenticationContext);
@@ -25,21 +25,6 @@ public final class SharedDirectory extends AbstractSharedItem {
 
     protected SharedDirectory(AbstractSharedItem abstractSharedItem, String pathName) {
         super(abstractSharedItem, pathName);
-    }
-
-    @Override
-    public SharedDirectory getParentPath() {
-        if (!getName().equals(smbPath.getPath())) {
-            String parentPath = smbPath.getPath().substring(0, smbPath.getPath().length() - getName().length() - 1);
-            return new SharedDirectory(this, parentPath);
-        } else {
-            return getRootPath();
-        }
-    }
-
-    @Override
-    public SharedDirectory getRootPath() {
-        return new SharedDirectory(this);
     }
 
     public SharedDirectory createDirectoryInCurrentDirectory(String name) {
@@ -96,5 +81,10 @@ public final class SharedDirectory extends AbstractSharedItem {
 
     private boolean isValidSharedItemName(String fileName) {
         return !fileName.equals(".") && !fileName.equals("..");
+    }
+
+    @Override
+    protected SharedDirectory createSharedNodeItem(String pathName) {
+        return new SharedDirectory(this, pathName);
     }
 }

@@ -9,7 +9,7 @@ import com.hierynomus.smbj.share.DiskShare;
 
 import java.io.IOException;
 
-public abstract class AbstractSharedItem implements SharedItem {
+public abstract class AbstractSharedItem<T extends SharedItem> implements SharedItem {
 
     protected final SMBClient smbClient;
 
@@ -73,12 +73,23 @@ public abstract class AbstractSharedItem implements SharedItem {
         return smbPath.toUncPath();
     }
 
-    public abstract SharedItem getParentPath();
+    public T getParentPath() {
+        if (!getName().equals(smbPath.getPath())) {
+            String parentPath = smbPath.getPath().substring(0, smbPath.getPath().length() - getName().length() - 1);
+            return createSharedNodeItem(parentPath);
+        } else {
+            return getRootPath();
+        }
+    }
 
-    public abstract SharedItem getRootPath();
+    public T getRootPath() {
+        return createSharedNodeItem("");
+    }
 
     @Override
     public boolean isRootPath() {
         return getRootPath().getPath().equals(getPath());
     }
+
+    protected abstract T createSharedNodeItem(String pathName);
 }
