@@ -73,7 +73,7 @@ public final class SharedDirectory extends AbstractSharedItem {
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
             if (isValidSharedItemName(fileName)) {
-                String filePath = smbDirectoryPath + "\\" + fileName;
+                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
                 FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
                 if (fileAllInformation.getStandardInformation().isDirectory()) {
                     sharedDirectories.add(new SharedDirectory(this, filePath));
@@ -89,7 +89,7 @@ public final class SharedDirectory extends AbstractSharedItem {
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
             if (isValidSharedItemName(fileName)) {
-                String filePath = smbDirectoryPath + "\\" + fileName;
+                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
                 FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
                 if (!fileAllInformation.getStandardInformation().isDirectory()) {
                     sharedFiles.add(new SharedFile(this, filePath));

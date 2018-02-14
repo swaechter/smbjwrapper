@@ -43,6 +43,11 @@ public class SharedDirectoryAndFileTest {
         Assertions.assertEquals("", shareDirectory.getName());
         Assertions.assertTrue(shareDirectory.isRootPath());
 
+        // Check the share root
+        SharedDirectory shareRoot = new SharedDirectory("127.0.0.1", "Share", AuthenticationContext.anonymous());
+        Assertions.assertTrue(!shareRoot.getDirectories().isEmpty());
+        Assertions.assertTrue(!shareRoot.getFiles().isEmpty());
+
         // Create a sub directory
         SharedDirectory subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
         Assertions.assertTrue(subDirectory1.isExisting());
