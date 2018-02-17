@@ -9,6 +9,7 @@ import com.hierynomus.smbj.auth.AuthenticationContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
 
@@ -45,33 +46,19 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     }
 
     public List<SharedDirectory> getDirectories() {
-        String smbDirectoryPath = smbPath.getPath();
         List<SharedDirectory> sharedDirectories = new ArrayList<>();
-        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
-            String fileName = fileIdBothDirectoryInformation.getFileName();
-            if (ShareUtils.isValidSharedItemName(fileName)) {
-                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
-                FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
-                if (fileAllInformation.getStandardInformation().isDirectory()) {
-                    sharedDirectories.add(new SharedDirectory(this, filePath));
-                }
-            }
+        Predicate<FileAllInformation> predicate = (fileAllInformation) -> fileAllInformation.getStandardInformation().isDirectory();
+        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getFileIdBothDirectoryInformations(predicate)) {
+            sharedDirectories.add(new SharedDirectory(this, fileIdBothDirectoryInformation.getFileName()));
         }
         return sharedDirectories;
     }
 
     public List<SharedFile> getFiles() {
-        String smbDirectoryPath = smbPath.getPath();
         List<SharedFile> sharedFiles = new ArrayList<>();
-        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
-            String fileName = fileIdBothDirectoryInformation.getFileName();
-            if (ShareUtils.isValidSharedItemName(fileName)) {
-                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
-                FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
-                if (!fileAllInformation.getStandardInformation().isDirectory()) {
-                    sharedFiles.add(new SharedFile(this, filePath));
-                }
-            }
+        Predicate<FileAllInformation> predicate = (fileAllInformation) -> !fileAllInformation.getStandardInformation().isDirectory();
+        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getFileIdBothDirectoryInformations(predicate)) {
+            sharedFiles.add(new SharedFile(this, fileIdBothDirectoryInformation.getFileName()));
         }
         return sharedFiles;
     }
@@ -79,5 +66,21 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     @Override
     protected SharedDirectory createSharedNodeItem(String pathName) {
         return new SharedDirectory(this, pathName);
+    }
+
+    private List<FileIdBothDirectoryInformation> getFileIdBothDirectoryInformations(Predicate<FileAllInformation> predicate) {
+        String smbDirectoryPath = smbPath.getPath();
+        List<FileIdBothDirectoryInformation> fileIdBothDirectoryInformations = new ArrayList<>();
+        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
+            String fileName = fileIdBothDirectoryInformation.getFileName();
+            if (ShareUtils.isValidSharedItemName(fileName)) {
+                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
+                FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
+                if (predicate.test(fileAllInformation)) {
+                    fileIdBothDirectoryInformations.add(fileIdBothDirectoryInformation);
+                }
+            }
+        }
+        return fileIdBothDirectoryInformations;
     }
 }
