@@ -1,6 +1,7 @@
 package ch.swaechter.smbjwrapper;
 
 import ch.swaechter.smbjwrapper.core.AbstractSharedItem;
+import ch.swaechter.smbjwrapper.utils.ShareUtils;
 import com.hierynomus.msfscc.fileinformation.FileAllInformation;
 import com.hierynomus.msfscc.fileinformation.FileIdBothDirectoryInformation;
 import com.hierynomus.smbj.auth.AuthenticationContext;
@@ -48,7 +49,7 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
         List<SharedDirectory> sharedDirectories = new ArrayList<>();
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
-            if (isValidSharedItemName(fileName)) {
+            if (ShareUtils.isValidSharedItemName(fileName)) {
                 String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
                 FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
                 if (fileAllInformation.getStandardInformation().isDirectory()) {
@@ -64,7 +65,7 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
         List<SharedFile> sharedFiles = new ArrayList<>();
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : diskShare.list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
-            if (isValidSharedItemName(fileName)) {
+            if (ShareUtils.isValidSharedItemName(fileName)) {
                 String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
                 FileAllInformation fileAllInformation = diskShare.getFileInformation(filePath);
                 if (!fileAllInformation.getStandardInformation().isDirectory()) {
@@ -73,10 +74,6 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
             }
         }
         return sharedFiles;
-    }
-
-    private boolean isValidSharedItemName(String fileName) {
-        return !fileName.equals(".") && !fileName.equals("..");
     }
 
     @Override
