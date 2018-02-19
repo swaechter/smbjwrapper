@@ -1,10 +1,6 @@
 package ch.swaechter.smbjwrapper;
 
-import com.hierynomus.msdtyp.AccessMask;
-import com.hierynomus.mssmb2.SMB2CreateDisposition;
-import com.hierynomus.mssmb2.SMB2ShareAccess;
 import com.hierynomus.smbj.auth.AuthenticationContext;
-import com.hierynomus.smbj.share.DiskShare;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,17 +9,75 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.EnumSet;
 import java.util.UUID;
 
 public class SharedDirectoryAndFileTest {
 
+    private final String serverName = "127.0.0.1";
+
+    private final String shareName = "Share";
+
+    private final AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
+
     @Test
-    public void testCoreFunctionality() throws Exception {
+    public void testRootPaths() throws Exception {
+        // Create a root share directory
+        SharedDirectory rootDirectory1 = new SharedDirectory(serverName, shareName, authenticationContext);
+        Assertions.assertTrue(rootDirectory1.isExisting());
+        Assertions.assertTrue(rootDirectory1.isDirectory());
+        Assertions.assertFalse(rootDirectory1.isFile());
+        Assertions.assertEquals(serverName, rootDirectory1.getServerName());
+        Assertions.assertEquals(shareName, rootDirectory1.getShareName());
+        Assertions.assertEquals("\\\\" + serverName + "\\" + shareName + "\\", rootDirectory1.getSmbPath());
+        Assertions.assertEquals("", rootDirectory1.getName());
+        Assertions.assertEquals("", rootDirectory1.getPath());
+        Assertions.assertEquals(rootDirectory1, rootDirectory1.getParentPath());
+        Assertions.assertEquals(rootDirectory1, rootDirectory1.getRootPath());
+        Assertions.assertTrue(rootDirectory1.isRootPath());
+
+        // Create a root share directory
+        SharedDirectory rootDirectory2 = new SharedDirectory(serverName, shareName, "", authenticationContext);
+        Assertions.assertTrue(rootDirectory2.isExisting());
+        Assertions.assertTrue(rootDirectory2.isDirectory());
+        Assertions.assertFalse(rootDirectory2.isFile());
+        Assertions.assertEquals(serverName, rootDirectory2.getServerName());
+        Assertions.assertEquals(shareName, rootDirectory2.getShareName());
+        Assertions.assertEquals("\\\\" + serverName + "\\" + shareName + "\\", rootDirectory2.getSmbPath());
+        Assertions.assertEquals("", rootDirectory2.getName());
+        Assertions.assertEquals("", rootDirectory2.getPath());
+        Assertions.assertEquals(rootDirectory2, rootDirectory2.getParentPath());
+        Assertions.assertEquals(rootDirectory2, rootDirectory2.getRootPath());
+        Assertions.assertTrue(rootDirectory2.isRootPath());
+
+        // Create a root share file
+        SharedFile rootFile1 = new SharedFile(serverName, shareName, "File1.txt", authenticationContext);
+        Assertions.assertFalse(rootFile1.isExisting());
+        Assertions.assertFalse(rootFile1.isDirectory());
+        Assertions.assertFalse(rootFile1.isFile());
+        Assertions.assertEquals(serverName, rootFile1.getServerName());
+        Assertions.assertEquals(shareName, rootFile1.getShareName());
+        Assertions.assertEquals("\\\\" + serverName + "\\" + shareName + "\\File1.txt", rootFile1.getSmbPath());
+        Assertions.assertEquals("File1.txt", rootFile1.getName());
+        Assertions.assertEquals("File1.txt", rootFile1.getPath());
+        Assertions.assertEquals(rootDirectory1, rootFile1.getParentPath());
+        Assertions.assertEquals(rootDirectory1, rootFile1.getRootPath());
+        Assertions.assertTrue(rootFile1.isRootPath());
+
+        // Create a root share file
+        SharedFile rootFile2 = new SharedFile(serverName, shareName, "File1.txt", authenticationContext);
+
+        // Compare all root share directories and files
+        Assertions.assertEquals(rootDirectory1, rootDirectory2);
+        Assertions.assertNotEquals(rootDirectory1, rootFile1);
+        Assertions.assertEquals(rootFile1, rootFile2);
+        Assertions.assertNotEquals(rootFile1, rootDirectory1);
+    }
+
+    @Test
+    public void testRecreation() throws Exception {
         // Create the entry point directory
         String baseName = "Transfer_" + UUID.randomUUID();
-        AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
-        SharedDirectory rootDirectory = new SharedDirectory("127.0.0.1", "Share", baseName, authenticationContext);
+        SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
 
         // Create the directory
         Assertions.assertFalse(rootDirectory.isExisting());
@@ -35,7 +89,7 @@ public class SharedDirectoryAndFileTest {
         Assertions.assertTrue(shareDirectory.isRootPath());
 
         // Create a root file
-        SharedFile rootFile = new SharedFile("127.0.0.1", "Share", "Text_" + baseName + ".txt", authenticationContext);
+        SharedFile rootFile = new SharedFile(serverName, shareName, "Text_" + baseName + ".txt", authenticationContext);
         rootFile.createFile();
         Assertions.assertTrue(rootFile.isExisting());
         shareDirectory = rootFile.getParentPath();
@@ -43,8 +97,14 @@ public class SharedDirectoryAndFileTest {
         Assertions.assertEquals("", shareDirectory.getName());
         Assertions.assertTrue(shareDirectory.isRootPath());
 
+        // Recreate the file
+        rootFile.deleteFile();
+        Assertions.assertFalse(rootFile.isExisting());
+        rootFile.createFile();
+        Assertions.assertTrue(rootFile.isExisting());
+
         // Check the share root
-        SharedDirectory shareRoot = new SharedDirectory("127.0.0.1", "Share", AuthenticationContext.anonymous());
+        SharedDirectory shareRoot = new SharedDirectory(serverName, shareName, AuthenticationContext.anonymous());
         Assertions.assertTrue(!shareRoot.getDirectories().isEmpty());
         Assertions.assertTrue(!shareRoot.getFiles().isEmpty());
 
@@ -113,49 +173,55 @@ public class SharedDirectoryAndFileTest {
         // Create a sub file in the sub directory
         subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
         Assertions.assertTrue(subFile1_2.isExisting());
+    }
+
+    @Test
+    public void testGetDirectoriesAndFiles() throws Exception {
+        // Create the entry point directory
+        String baseName = "Transfer_" + UUID.randomUUID();
+        SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
+        rootDirectory.createDirectory();
+
+        // Create the subdirectory and subfiles
+        SharedDirectory subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+        SharedFile subFile1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
+        SharedFile subFile2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
 
         // Show all directories
         for (SharedDirectory sharedDirectory : rootDirectory.getDirectories()) {
             String fileName = sharedDirectory.getName();
-            Assertions.assertTrue(fileName.equals("Subdirectory1") || fileName.equals("Subdirectory2"));
+            Assertions.assertTrue(fileName.equals(subDirectory1.getName()));
         }
 
         // Show all files
         for (SharedFile sharedFile : subDirectory1.getFiles()) {
             String fileName = sharedFile.getName();
-            Assertions.assertTrue(fileName.equals("Subfile1.txt") || fileName.equals("Subfile2.txt"));
+            Assertions.assertTrue(fileName.equals(subFile1.getName()) || fileName.equals(subFile2.getName()));
         }
+    }
 
-        // Delete a sub file in the sub directory
-        subFile1_2.deleteFile();
-        Assertions.assertFalse(subFile1_2.isExisting());
+    @Test
+    public void testDownAndUpload() throws Exception {
+        // Create the entry point directory
+        String baseName = "Transfer_" + UUID.randomUUID();
+        SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
+        rootDirectory.createDirectory();
 
-        // Delete the sub directory
-        subDirectory1.deleteDirectoryRecursively();
-        Assertions.assertFalse(subDirectory1.isExisting());
-        Assertions.assertFalse(subFile1_1.isExisting());
-        Assertions.assertFalse(subFile1_2.isExisting());
-
-        // Get and check the root paths
-        String directoryRootPath1 = rootDirectory.getRootPath().getPath();
-        String directoryRootPath2 = subDirectory1.getRootPath().getPath();
-        String fileRootPath1 = subFile1_1.getRootPath().getPath();
-        Assertions.assertEquals(directoryRootPath1, directoryRootPath2);
-        Assertions.assertEquals(directoryRootPath1, fileRootPath1);
-        Assertions.assertEquals("\\\\127.0.0.1\\Share\\" + baseName, rootDirectory.getPath());
+        // Create the subdirectory and subfiles
+        SharedDirectory subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
 
         // Upload a file
         InputStream inputStream = new FileInputStream(new File("src/test/resources/Screenshot.png"));
         Assertions.assertNotNull(inputStream);
 
-        SharedFile subFile2_1 = subDirectory2.createFileInCurrentDirectory("Subfile1.txt");
+        SharedFile subFile2_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
         OutputStream outputStream = subFile2_1.getOutputStream();
         IOUtils.copy(inputStream, outputStream);
         inputStream.close();
         outputStream.close();
 
         // Transfer/download a file
-        SharedFile subFile2_2 = subDirectory2.createFileInCurrentDirectory("Subfile2.txt");
+        SharedFile subFile2_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
         inputStream = subFile2_1.getInputStream();
         outputStream = subFile2_2.getOutputStream();
 
@@ -165,61 +231,6 @@ public class SharedDirectoryAndFileTest {
 
         // Clean up
         rootDirectory.deleteDirectoryRecursively();
-        rootFile.deleteFile();
-    }
-
-    @Test
-    public void testCreationAndDeletion() throws Exception {
-        /*String baseName = "Transfer10";//_" + UUID.randomUUID();
-        AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
-
-        SMBClient smbClient = new SMBClient();
-        Connection connection = smbClient.connect("127.0.0.1");
-        Session session = connection.authenticate(authenticationContext);
-        DiskShare diskShare = (DiskShare) session.connectShare("Share");
-
-        createDirectory(baseName, diskShare);
-        deleteDirectory(baseName, diskShare);
-        createDirectory(baseName, diskShare);
-
-        createFile(baseName + "/foo", diskShare);
-        deleteFile(baseName + "/foo", diskShare);
-        createFile(baseName + "/foo", diskShare);
-
-        createDirectory(baseName + "/dir", diskShare);
-        createFile(baseName + "/dir/data.txt", diskShare);
-        deleteFile(baseName + "/dir/data.txt", diskShare);
-        deleteDirectory(baseName + "/dir", diskShare);
-
-        createDirectory(baseName + "/dir", diskShare);
-        deleteDirectory(baseName + "/dir", diskShare);
-        createDirectory(baseName + "/dir", diskShare);
-
-        deleteDirectory(baseName, diskShare);*/
-    }
-
-    void createDirectory(String pathName, DiskShare diskShare) {
-        diskShare.mkdir(pathName);
-        /*Directory directory = diskShare.openDirectory(pathName, EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN_IF, null);
-        directory.close();*/
-    }
-
-    void deleteDirectory(String pathName, DiskShare diskShare) {
-        /*Directory directory = diskShare.openDirectory(pathName, EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN_IF, null);
-        directory.deleteOnClose();
-        directory.close();*/
-        diskShare.rmdir(pathName, true);
-    }
-
-    void createFile(String pathName, DiskShare diskShare) {
-        com.hierynomus.smbj.share.File file = diskShare.openFile(pathName, EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
-        file.deleteOnClose();
-        file.close();
-    }
-
-    void deleteFile(String pathName, DiskShare diskShare) {
-        com.hierynomus.smbj.share.File file = diskShare.openFile(pathName, EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
-        file.deleteOnClose();
-        //diskShare.rm(pathName);
+        Assertions.assertFalse(rootDirectory.isExisting());
     }
 }

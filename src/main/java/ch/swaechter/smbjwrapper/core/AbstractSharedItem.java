@@ -60,7 +60,6 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     @Override
     public String getName() {
         if (!smbPath.getPath().isEmpty()) {
-            // TODO: Improve the code because a file/directory can also contain backslashes
             String[] parameters = smbPath.getPath().split("\\\\");
             return parameters[parameters.length - 1];
         } else {
@@ -69,8 +68,23 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     }
 
     @Override
-    public String getPath() {
+    public String getServerName() {
+        return smbPath.getHostname();
+    }
+
+    @Override
+    public String getShareName() {
+        return smbPath.getShareName();
+    }
+
+    @Override
+    public String getSmbPath() {
         return smbPath.toUncPath();
+    }
+
+    @Override
+    public String getPath() {
+        return smbPath.getPath();
     }
 
     @Override
@@ -90,8 +104,10 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
 
     @Override
     public boolean isRootPath() {
-        return getRootPath().getPath().equals(getPath());
+        return getRootPath().equals(getParentPath());
     }
+
+    public abstract boolean equals(Object object);
 
     protected abstract T createSharedNodeItem(String pathName);
 }

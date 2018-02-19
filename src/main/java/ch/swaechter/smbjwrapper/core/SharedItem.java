@@ -8,6 +8,12 @@ public interface SharedItem {
 
     boolean isFile();
 
+    String getServerName();
+
+    String getShareName();
+
+    String getSmbPath();
+
     String getName();
 
     String getPath();
