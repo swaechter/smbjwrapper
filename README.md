@@ -8,7 +8,11 @@ This project provides an object & hierarchy based wrapper API for the smbj proje
 
 ### Import the project via Maven
 
-    TODO
+    <dependency>
+        <groupId>ch.swaechter</groupId>
+        <artifactId>smbjwrapper</artifactId>
+        <version>0.0.1</version>
+    </dependency>
 
 ### Create an authentication for the server
 
