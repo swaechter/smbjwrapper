@@ -11,14 +11,33 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+/**
+ * This class provides a combined test for the shared directory and file class.
+ *
+ * @author Simon Wächter
+ */
 public class SharedDirectoryAndFileTest {
 
+    /**
+     * Server name of the local test server.
+     */
     private final String serverName = "127.0.0.1";
 
+    /**
+     * Share name of the local test server.
+     */
     private final String shareName = "Share";
 
+    /**
+     * Anonymous authentication for the local test server.
+     */
     private final AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
 
+    /**
+     * Test all root directories and file including their attribute methods.
+     *
+     * @throws Exception Exception in case of a problem
+     */
     @Test
     public void testRootPaths() throws Exception {
         // Create a root share directory
@@ -73,122 +92,98 @@ public class SharedDirectoryAndFileTest {
         Assertions.assertNotEquals(rootFile1, rootDirectory1);
     }
 
+    /**
+     * Test the recreation to prevent any open handle issues during creation/deletion and recreation/redeletion.
+     *
+     * @throws Exception Exception in case of a problem
+     */
     @Test
     public void testRecreation() throws Exception {
         // Create the entry point directory
         String baseName = "Transfer_" + UUID.randomUUID();
-        SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
+        SharedDirectory transferDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
 
-        // Create the directory
-        Assertions.assertFalse(rootDirectory.isExisting());
-        rootDirectory.createDirectory();
-        Assertions.assertTrue(rootDirectory.isExisting());
-        SharedDirectory shareDirectory = rootDirectory.getParentPath();
-        Assertions.assertEquals(shareDirectory.getRootPath().getPath(), shareDirectory.getPath());
-        Assertions.assertEquals("", shareDirectory.getName());
-        Assertions.assertTrue(shareDirectory.isRootPath());
+        // Repeat the creation/deletion multiple times
+        for (int i = 0; i < 5; i++) {
+            // Create the directory
+            Assertions.assertFalse(transferDirectory.isExisting());
+            transferDirectory.createDirectory();
+            Assertions.assertTrue(transferDirectory.isExisting());
+            SharedDirectory shareDirectory = transferDirectory.getParentPath();
+            Assertions.assertEquals(shareDirectory.getRootPath().getPath(), shareDirectory.getPath());
+            Assertions.assertEquals("", shareDirectory.getName());
+            Assertions.assertTrue(shareDirectory.isRootPath());
 
-        // Create a root file
-        SharedFile rootFile = new SharedFile(serverName, shareName, "Text_" + baseName + ".txt", authenticationContext);
-        rootFile.createFile();
-        Assertions.assertTrue(rootFile.isExisting());
-        shareDirectory = rootFile.getParentPath();
-        Assertions.assertEquals(shareDirectory.getRootPath().getPath(), shareDirectory.getPath());
-        Assertions.assertEquals("", shareDirectory.getName());
-        Assertions.assertTrue(shareDirectory.isRootPath());
+            // Create a root file
+            SharedFile transferFile = new SharedFile(serverName, shareName, "Text_" + baseName + ".txt", authenticationContext);
+            transferFile.createFile();
+            Assertions.assertTrue(transferFile.isExisting());
+            shareDirectory = transferFile.getParentPath();
+            Assertions.assertEquals(shareDirectory.getRootPath().getPath(), shareDirectory.getPath());
+            Assertions.assertEquals("", shareDirectory.getName());
+            Assertions.assertTrue(shareDirectory.isRootPath());
 
-        // Recreate the file
-        rootFile.deleteFile();
-        Assertions.assertFalse(rootFile.isExisting());
-        rootFile.createFile();
-        Assertions.assertTrue(rootFile.isExisting());
+            // Recreate the file
+            transferFile.deleteFile();
+            Assertions.assertFalse(transferFile.isExisting());
+            transferFile.createFile();
+            Assertions.assertTrue(transferFile.isExisting());
 
-        // Check the share root
-        SharedDirectory shareRoot = new SharedDirectory(serverName, shareName, AuthenticationContext.anonymous());
-        Assertions.assertTrue(!shareRoot.getDirectories().isEmpty());
-        Assertions.assertTrue(!shareRoot.getFiles().isEmpty());
+            // Check the share root
+            SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, AuthenticationContext.anonymous());
+            Assertions.assertTrue(!rootDirectory.getDirectories().isEmpty());
+            Assertions.assertTrue(!rootDirectory.getFiles().isEmpty());
 
-        // Create a sub directory
-        SharedDirectory subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
-        Assertions.assertTrue(subDirectory1.isExisting());
-        SharedDirectory rootDirectory2 = subDirectory1.getParentPath();
-        Assertions.assertEquals(rootDirectory.getPath(), rootDirectory2.getPath());
+            // Create a sub directory
+            SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+            Assertions.assertTrue(subDirectory1.isExisting());
+            SharedDirectory rootDirectory2 = subDirectory1.getParentPath();
+            Assertions.assertEquals(transferDirectory.getPath(), rootDirectory2.getPath());
 
-        // Create a sub directory
-        SharedDirectory subDirectory2 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory2");
-        Assertions.assertTrue(subDirectory2.isExisting());
+            // Create a sub directory
+            SharedDirectory subDirectory2 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory2");
+            Assertions.assertTrue(subDirectory2.isExisting());
 
-        // Create a sub file in the sub directory
-        SharedFile subFile1_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
-        Assertions.assertTrue(subFile1_1.isExisting());
-        SharedDirectory rootDirectory3 = subFile1_1.getParentPath();
-        Assertions.assertEquals(subDirectory1.getPath(), rootDirectory3.getPath());
+            // Create a sub file in the sub directory
+            SharedFile subFile1_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
+            Assertions.assertTrue(subFile1_1.isExisting());
+            SharedDirectory rootDirectory3 = subFile1_1.getParentPath();
+            Assertions.assertEquals(subDirectory1.getPath(), rootDirectory3.getPath());
 
-        // Create a sub file in the sub directory
-        SharedFile subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
-        Assertions.assertTrue(subFile1_2.isExisting());
+            // Create a sub file in the sub directory
+            SharedFile subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
+            Assertions.assertTrue(subFile1_2.isExisting());
 
-        // Check the sub items
-        Assertions.assertEquals(2, rootDirectory.getDirectories().size());
-        Assertions.assertEquals(0, rootDirectory.getFiles().size());
-        Assertions.assertEquals(0, subDirectory1.getDirectories().size());
-        Assertions.assertEquals(2, subDirectory1.getFiles().size());
+            // Check the sub items
+            Assertions.assertEquals(2, transferDirectory.getDirectories().size());
+            Assertions.assertEquals(0, transferDirectory.getFiles().size());
+            Assertions.assertEquals(0, subDirectory1.getDirectories().size());
+            Assertions.assertEquals(2, subDirectory1.getFiles().size());
 
-        // Recreate the directory
-        rootDirectory.deleteDirectoryRecursively();
-        rootDirectory.createDirectory();
-
-        // Create a sub directory
-        subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
-        Assertions.assertTrue(subDirectory1.isExisting());
-
-        // Create a sub directory
-        subDirectory2 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory2");
-        Assertions.assertTrue(subDirectory2.isExisting());
-
-        // Create a sub file in the sub directory
-        subFile1_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
-        Assertions.assertTrue(subFile1_1.isExisting());
-
-        // Create a sub file in the sub directory
-        subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
-        Assertions.assertTrue(subFile1_2.isExisting());
-
-        // Recreate the directory
-        rootDirectory.deleteDirectoryRecursively();
-        rootDirectory.createDirectory();
-
-        // Create a sub directory
-        subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
-        Assertions.assertTrue(subDirectory1.isExisting());
-
-        // Create a sub directory
-        subDirectory2 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory2");
-        Assertions.assertTrue(subDirectory2.isExisting());
-
-        // Create a sub file in the sub directory
-        subFile1_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
-        Assertions.assertTrue(subFile1_1.isExisting());
-
-        // Create a sub file in the sub directory
-        subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
-        Assertions.assertTrue(subFile1_2.isExisting());
+            // Recreate the directory
+            transferDirectory.deleteDirectoryRecursively();
+        }
     }
 
+    /**
+     * Test the list directory and file method.
+     *
+     * @throws Exception Exception in case of a problem
+     */
     @Test
     public void testGetDirectoriesAndFiles() throws Exception {
         // Create the entry point directory
         String baseName = "Transfer_" + UUID.randomUUID();
-        SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
-        rootDirectory.createDirectory();
+        SharedDirectory transferDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
+        transferDirectory.createDirectory();
 
         // Create the subdirectory and subfiles
-        SharedDirectory subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+        SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
         SharedFile subFile1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
         SharedFile subFile2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
 
         // Show all directories
-        for (SharedDirectory sharedDirectory : rootDirectory.getDirectories()) {
+        for (SharedDirectory sharedDirectory : transferDirectory.getDirectories()) {
             String fileName = sharedDirectory.getName();
             Assertions.assertTrue(fileName.equals(subDirectory1.getName()));
         }
@@ -200,15 +195,20 @@ public class SharedDirectoryAndFileTest {
         }
     }
 
+    /**
+     * Test the up- and download including a final delete.
+     *
+     * @throws Exception Exception in case of a problem
+     */
     @Test
-    public void testDownAndUpload() throws Exception {
+    public void testUploadAndDownload() throws Exception {
         // Create the entry point directory
         String baseName = "Transfer_" + UUID.randomUUID();
-        SharedDirectory rootDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
-        rootDirectory.createDirectory();
+        SharedDirectory transferDirectory = new SharedDirectory(serverName, shareName, baseName, authenticationContext);
+        transferDirectory.createDirectory();
 
         // Create the subdirectory and subfiles
-        SharedDirectory subDirectory1 = rootDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+        SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
 
         // Upload a file
         InputStream inputStream = new FileInputStream(new File("src/test/resources/Screenshot.png"));
@@ -230,7 +230,7 @@ public class SharedDirectoryAndFileTest {
         outputStream.close();
 
         // Clean up
-        rootDirectory.deleteDirectoryRecursively();
-        Assertions.assertFalse(rootDirectory.isExisting());
+        transferDirectory.deleteDirectoryRecursively();
+        Assertions.assertFalse(transferDirectory.isExisting());
     }
 }
