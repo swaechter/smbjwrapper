@@ -64,7 +64,7 @@ Via anonymous user:
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory/Subdirectory/Subdirectory");
     SharedFile sharedFile = new SharedFile(rootDirectory, "Directory/Subdirectory/File.txt");
 
-Please be aware, that the directory and file path of `sharedDirectory` and `sharedFile` are always absolute - the path of `rootDirectory` won't be inserted before (You can of course access the path of this object to create a hierarchy/tree).
+Please note: The new path is always absolute and won't be appended to the path of the reused object. In case you want to create a hierarchy, get the path of the parent in advance and append the new path name.
 
 ### Access a directory/file and traverse the tree
 
@@ -88,13 +88,12 @@ Create a directory:
 Create a directory in the current directory (Same as createDirectory for path `Directory/Subdirectory`):
 
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
-    sharedDirectory.createDirectoryInCurrentDirectory("Subdirectory");
+    SharedDirectory newSharedDirectory = sharedDirectory.createDirectoryInCurrentDirectory("Subdirectory");
 
 Create a file in the current directory (Same as createFile for path `Directory/Subfile`):
 
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
-    sharedDirectory.createFileInCurrentDirectory("Subfile");
-
+    SharedFile newSharedFile = sharedDirectory.createFileInCurrentDirectory("Subfile");
 
 ### Upload and download a file
 
@@ -110,7 +109,6 @@ Upload from an input stream:
 
 Download to an output stream:
 
-   
     SharedFile sharedFile = new SharedFile(rootDirectory, "File.txt");
     InputStream inputStream = sharedFile.getInputStream();
     OutputStream outputStream = ... // Your output stream
