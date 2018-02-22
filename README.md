@@ -4,15 +4,27 @@
 
 This project provides an object & hierarchy based wrapper API for the smbj project (https://github.com/hierynomus/smbj). It serves as a replacement for the aging and insecure JCIFS project.
 
-## Use Case
+## Installation
 
-### Import the project via Maven
+Import the dependency:
 
     <dependency>
         <groupId>ch.swaechter</groupId>
         <artifactId>smbjwrapper</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
     </dependency>
+
+Provide a SLF4J logger backend implementation:
+
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+
+You can also use a different backend implementation. For more information see https://www.slf4j.org/manual.html
+
+## Usage
 
 ### Create an authentication for the server
 
@@ -78,7 +90,7 @@ Create a directory in the current directory (Same as createDirectory for path `D
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
     sharedDirectory.createDirectoryInCurrentDirectory("Subdirectory");
 
-Create a file in the current directory (Same as createFile for path `Directory`):
+Create a file in the current directory (Same as createFile for path `Directory/Subfile`):
 
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
     sharedDirectory.createFileInCurrentDirectory("Subfile");
