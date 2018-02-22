@@ -85,12 +85,12 @@ Create a directory:
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
     sharedDirectory.createDirectory();
 
-Create a directory in the current directory (Same as createDirectory for path `Directory/Subdirectory`):
+Create a directory in the current directory (Same as `SharedDirectory.createDirectory` for path `Directory/Subdirectory`):
 
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
     SharedDirectory newSharedDirectory = sharedDirectory.createDirectoryInCurrentDirectory("Subdirectory");
 
-Create a file in the current directory (Same as createFile for path `Directory/Subfile`):
+Create a file in the current directory (Same as `SharedFile.createFile` for path `Directory/Subfile`):
 
     SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
     SharedFile newSharedFile = sharedDirectory.createFileInCurrentDirectory("Subfile");
