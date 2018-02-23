@@ -259,12 +259,4 @@ public class SharedDirectoryAndFileTest {
         return "Transfer_" + UUID.randomUUID();
 
     }
-
-
-    public void doStuff() throws Exception {
-        AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
-        try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
-            // Do your work
-        }
-    }
 }
