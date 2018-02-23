@@ -12,7 +12,7 @@ Import the dependency:
 <dependency>
     <groupId>ch.swaechter</groupId>
     <artifactId>smbjwrapper</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
 </dependency>
 ```
 
