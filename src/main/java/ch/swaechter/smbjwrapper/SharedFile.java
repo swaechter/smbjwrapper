@@ -8,7 +8,6 @@ import com.hierynomus.mssmb2.SMB2CreateDisposition;
 import com.hierynomus.mssmb2.SMB2ShareAccess;
 import com.hierynomus.smbj.share.File;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.EnumSet;
@@ -25,9 +24,8 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      *
      * @param sharedConnection Shared connection
      * @param pathName         Path name
-     * @throws IOException Exception in case of a problem
      */
-    public SharedFile(SharedConnection sharedConnection, String pathName) throws IOException {
+    public SharedFile(SharedConnection sharedConnection, String pathName) {
         super(sharedConnection, pathName);
     }
 
@@ -35,7 +33,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * Create a new file.
      */
     public void createFile() {
-        File file = sharedConnection.getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
+        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         file.close();
     }
 
@@ -43,7 +41,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * Delete the current file.
      */
     public void deleteFile() {
-        sharedConnection.getDiskShare().rm(getPath());
+        getDiskShare().rm(getPath());
     }
 
     /**
@@ -52,7 +50,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * @return Input stream of the shared file
      */
     public InputStream getInputStream() {
-        File file = sharedConnection.getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
+        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
         return new SharedInputStream(file);
     }
 
@@ -63,7 +61,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      */
 
     public OutputStream getOutputStream() {
-        File file = sharedConnection.getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
+        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         return new SharedOutputStream(file);
     }
 
@@ -88,10 +86,9 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      *
      * @param pathName Path name of the shared item
      * @return New shared directory
-     * @throws IOException Exception in case of a problem
      */
     @Override
-    protected SharedDirectory createSharedNodeItem(String pathName) throws IOException {
-        return new SharedDirectory(sharedConnection, pathName);
+    protected SharedDirectory createSharedNodeItem(String pathName) {
+        return new SharedDirectory(getSharedConnection(), pathName);
     }
 }

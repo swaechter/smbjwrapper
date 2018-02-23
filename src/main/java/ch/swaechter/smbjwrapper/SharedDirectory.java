@@ -5,7 +5,6 @@ import ch.swaechter.smbjwrapper.utils.ShareUtils;
 import com.hierynomus.msfscc.fileinformation.FileAllInformation;
 import com.hierynomus.msfscc.fileinformation.FileIdBothDirectoryInformation;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -22,9 +21,8 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      *
      * @param sharedConnection Shared connection
      * @param pathName         Path name
-     * @throws IOException Exception in case of a problem
      */
-    public SharedDirectory(SharedConnection sharedConnection, String pathName) throws IOException {
+    public SharedDirectory(SharedConnection sharedConnection, String pathName) {
         super(sharedConnection, pathName);
     }
 
@@ -32,10 +30,9 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * Create a new shared directory based on the shared connection. As path name, the root path is used.
      *
      * @param sharedConnection Shared connection
-     * @throws IOException Exception in case of a problem
      */
-    public SharedDirectory(SharedConnection sharedConnection) throws IOException {
-        super(sharedConnection, "");
+    public SharedDirectory(SharedConnection sharedConnection) {
+        super(sharedConnection, ROOT_PATH);
     }
 
     /**
@@ -43,11 +40,10 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      *
      * @param directoryName Name of the new directory
      * @return Newly created directory
-     * @throws IOException Exception in case of a problem
      */
-    public SharedDirectory createDirectoryInCurrentDirectory(String directoryName) throws IOException {
-        String pathSuffix = !getPath().isEmpty() ? getPath() + "/" : "";
-        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, pathSuffix + directoryName);
+    public SharedDirectory createDirectoryInCurrentDirectory(String directoryName) {
+        String pathSuffix = !getPath().isEmpty() ? getPath() + PATH_SEPARATOR : ROOT_PATH;
+        SharedDirectory sharedDirectory = new SharedDirectory(getSharedConnection(), pathSuffix + directoryName);
         sharedDirectory.createDirectory();
         return sharedDirectory;
     }
@@ -57,11 +53,10 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      *
      * @param fileName Name of the new file
      * @return Newly created file
-     * @throws IOException Exception in case of a problem
      */
-    public SharedFile createFileInCurrentDirectory(String fileName) throws IOException {
-        String pathSuffix = !getPath().isEmpty() ? getPath() + "/" : "";
-        SharedFile sharedFile = new SharedFile(sharedConnection, pathSuffix + fileName);
+    public SharedFile createFileInCurrentDirectory(String fileName) {
+        String pathSuffix = !getPath().isEmpty() ? getPath() + PATH_SEPARATOR : ROOT_PATH;
+        SharedFile sharedFile = new SharedFile(getSharedConnection(), pathSuffix + fileName);
         sharedFile.createFile();
         return sharedFile;
     }
@@ -70,27 +65,26 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * Create the current directory.
      */
     public void createDirectory() {
-        sharedConnection.getDiskShare().mkdir(getPath());
+        getDiskShare().mkdir(getPath());
     }
 
     /**
      * Delete the current directory with all its subdirectories and subfiles.
      */
     public void deleteDirectoryRecursively() {
-        sharedConnection.getDiskShare().rmdir(getPath(), true);
+        getDiskShare().rmdir(getPath(), true);
     }
 
     /**
      * Get all directories of the current directory.
      *
      * @return List with all directories
-     * @throws IOException Exception in case of a problem
      */
-    public List<SharedDirectory> getDirectories() throws IOException {
+    public List<SharedDirectory> getDirectories() {
         List<SharedDirectory> sharedDirectories = new ArrayList<>();
         Predicate<FileAllInformation> predicate = (fileAllInformation) -> fileAllInformation.getStandardInformation().isDirectory();
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getFileIdBothDirectoryInformations(predicate)) {
-            sharedDirectories.add(new SharedDirectory(sharedConnection, getPath() + "/" + fileIdBothDirectoryInformation.getFileName()));
+            sharedDirectories.add(new SharedDirectory(getSharedConnection(), getPath() + PATH_SEPARATOR + fileIdBothDirectoryInformation.getFileName()));
         }
         return sharedDirectories;
     }
@@ -99,13 +93,12 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * Get all files of the current directory.
      *
      * @return List with all files
-     * @throws IOException Exception in case of a problem
      */
-    public List<SharedFile> getFiles() throws IOException {
+    public List<SharedFile> getFiles() {
         List<SharedFile> sharedFiles = new ArrayList<>();
         Predicate<FileAllInformation> predicate = (fileAllInformation) -> !fileAllInformation.getStandardInformation().isDirectory();
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getFileIdBothDirectoryInformations(predicate)) {
-            sharedFiles.add(new SharedFile(sharedConnection, getPath() + "/" + fileIdBothDirectoryInformation.getFileName()));
+            sharedFiles.add(new SharedFile(getSharedConnection(), getPath() + PATH_SEPARATOR + fileIdBothDirectoryInformation.getFileName()));
         }
         return sharedFiles;
     }
@@ -131,11 +124,10 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      *
      * @param pathName Path name of the shared item
      * @return New shared directory
-     * @throws IOException Exception in case of a problem
      */
     @Override
-    protected SharedDirectory createSharedNodeItem(String pathName) throws IOException {
-        return new SharedDirectory(sharedConnection, pathName);
+    protected SharedDirectory createSharedNodeItem(String pathName) {
+        return new SharedDirectory(getSharedConnection(), pathName);
     }
 
     /**
@@ -147,11 +139,11 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     private List<FileIdBothDirectoryInformation> getFileIdBothDirectoryInformations(Predicate<FileAllInformation> predicate) {
         String smbDirectoryPath = getPath();
         List<FileIdBothDirectoryInformation> fileIdBothDirectoryInformations = new ArrayList<>();
-        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : sharedConnection.getDiskShare().list(smbDirectoryPath)) {
+        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getDiskShare().list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
             if (ShareUtils.isValidSharedItemName(fileName)) {
-                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + "\\" + fileName;
-                FileAllInformation fileAllInformation = sharedConnection.getDiskShare().getFileInformation(filePath);
+                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + PATH_SEPARATOR + fileName;
+                FileAllInformation fileAllInformation = getDiskShare().getFileInformation(filePath);
                 if (predicate.test(fileAllInformation)) {
                     fileIdBothDirectoryInformations.add(fileIdBothDirectoryInformation);
                 }

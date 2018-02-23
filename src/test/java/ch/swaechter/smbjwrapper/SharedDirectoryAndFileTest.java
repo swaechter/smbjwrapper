@@ -262,6 +262,5 @@ public class SharedDirectoryAndFileTest {
 
     private String buildUniquePath() {
         return "Transfer_" + UUID.randomUUID();
-
     }
 }

@@ -1,7 +1,5 @@
 package ch.swaechter.smbjwrapper.core;
 
-import java.io.IOException;
-
 /**
  * This class provides an interface for a directory/file like filesystem structure.
  *
@@ -69,17 +67,15 @@ public interface SharedItem {
      * Get the parent shared item. If the shared item us already the root item, the root item will be returned.
      *
      * @return Parent shared item
-     * @throws IOException Exception in case of a problem
      */
-    SharedItem getParentPath() throws IOException;
+    SharedItem getParentPath();
 
     /**
      * Get the root shared item. If the shared item us already the root item, the root item will be returned.
      *
      * @return Root shared item
-     * @throws IOException Exception in case of a problem
      */
-    SharedItem getRootPath() throws IOException;
+    SharedItem getRootPath();
 
     /**
      * Check if the current shared item or its parent is the root shared item.

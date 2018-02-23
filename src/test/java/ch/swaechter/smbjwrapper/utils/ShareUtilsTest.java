@@ -17,6 +17,7 @@ public class ShareUtilsTest {
     public void testIsValidSharedItemName() {
         Assertions.assertFalse(ShareUtils.isValidSharedItemName("."));
         Assertions.assertFalse(ShareUtils.isValidSharedItemName(".."));
+        Assertions.assertFalse(ShareUtils.isValidSharedItemName("/"));
         Assertions.assertTrue(ShareUtils.isValidSharedItemName("Directory"));
         Assertions.assertTrue(ShareUtils.isValidSharedItemName("File.txt"));
     }

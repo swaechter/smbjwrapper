@@ -1,9 +1,9 @@
 package ch.swaechter.smbjwrapper.core;
 
 import ch.swaechter.smbjwrapper.SharedConnection;
+import ch.swaechter.smbjwrapper.utils.ShareUtils;
 import com.hierynomus.smbj.common.SmbPath;
-
-import java.io.IOException;
+import com.hierynomus.smbj.share.DiskShare;
 
 /**
  * This class provides a common abstracted class that represents a directory/file like node.
@@ -14,25 +14,39 @@ import java.io.IOException;
 public abstract class AbstractSharedItem<T extends SharedItem> implements SharedItem {
 
     /**
+     * String used to separate paths.
+     */
+    protected static final String PATH_SEPARATOR = "/";
+
+    /**
+     * String used to represent the root path.
+     */
+    protected static final String ROOT_PATH = "";
+
+    /**
      * Shared connection to access the server.
      */
-    protected final SharedConnection sharedConnection;
+    private final SharedConnection sharedConnection;
 
     /**
      * Path name of the abstract shared item.
      */
-    protected final String pathName;
+    private final String pathName;
 
     /**
      * Create a new abstract shared item based on the shared connection and the path name.
      *
      * @param sharedConnection Shared connection
      * @param pathName         Path name
-     * @throws IOException Exception in case of a problem
+     * @throws RuntimeException Exception in case of an invalid path name
      */
-    public AbstractSharedItem(SharedConnection sharedConnection, String pathName) throws IOException {
-        this.sharedConnection = sharedConnection;
-        this.pathName = pathName;
+    public AbstractSharedItem(SharedConnection sharedConnection, String pathName) {
+        if (ShareUtils.isValidSharedItemName(pathName)) {
+            this.sharedConnection = sharedConnection;
+            this.pathName = pathName;
+        } else {
+            throw new RuntimeException("The given path name is not a valid share path");
+        }
     }
 
     /**
@@ -65,7 +79,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     @Override
     public String getName() {
         if (!pathName.isEmpty()) {
-            int lastIndex = pathName.lastIndexOf("/");
+            int lastIndex = pathName.lastIndexOf(PATH_SEPARATOR);
             return pathName.substring(lastIndex + 1, pathName.length());
         } else {
             return pathName;
@@ -101,7 +115,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public String getSmbPath() {
-        SmbPath smbPath = new SmbPath(getServerName(), getShareName(), pathName.replace("/", "\\"));
+        SmbPath smbPath = new SmbPath(getServerName(), getShareName(), pathName.replace(PATH_SEPARATOR, "\\"));
         return smbPath.toUncPath();
     }
 
@@ -109,9 +123,9 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      * {@inheritDoc}
      */
     @Override
-    public T getParentPath() throws IOException {
+    public T getParentPath() {
         if (!isRootPath()) {
-            int lastIndex = pathName.lastIndexOf("/");
+            int lastIndex = pathName.lastIndexOf(PATH_SEPARATOR);
             return createSharedNodeItem(pathName.substring(0, lastIndex));
         } else {
             return getRootPath();
@@ -122,8 +136,8 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      * {@inheritDoc}
      */
     @Override
-    public T getRootPath() throws IOException {
-        return createSharedNodeItem("");
+    public T getRootPath() {
+        return createSharedNodeItem(ROOT_PATH);
     }
 
     /**
@@ -131,8 +145,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public boolean isRootPath() {
-        // TODO: Fix /Directory
-        int lastIndex = getPath().lastIndexOf("/");
+        int lastIndex = getPath().lastIndexOf(PATH_SEPARATOR);
         return lastIndex == 0 || lastIndex == -1;
     }
 
@@ -145,11 +158,28 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     public abstract boolean equals(Object object);
 
     /**
+     * Get the shared connection.
+     *
+     * @return Shared connection
+     */
+    protected SharedConnection getSharedConnection() {
+        return sharedConnection;
+    }
+
+    /**
+     * Get the disk share of the shared connection.
+     *
+     * @return Disk share of the shared connection
+     */
+    protected DiskShare getDiskShare() {
+        return getSharedConnection().getDiskShare();
+    }
+
+    /**
      * Create a new shared item. This factory method is defined to enable directory/file like decoupling.
      *
      * @param pathName Path name of the shared item
      * @return Shared item
-     * @throws IOException Exception in case of a problem
      */
-    protected abstract T createSharedNodeItem(String pathName) throws IOException;
+    protected abstract T createSharedNodeItem(String pathName);
 }

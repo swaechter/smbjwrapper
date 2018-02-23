@@ -8,12 +8,19 @@ package ch.swaechter.smbjwrapper.utils;
 public class ShareUtils {
 
     /**
-     * Check if the shared item name is valid and does not contain a '.' or '..'.
+     * Check if the shared item name is valid and does not contain some invalid characters
      *
      * @param fileName File name to be checked
      * @return Status of the check
      */
     public static boolean isValidSharedItemName(String fileName) {
-        return !fileName.equals(".") && !fileName.equals("..");
+        switch (fileName) {
+            case ".":
+            case "..":
+            case "/":
+                return false;
+            default:
+                return true;
+        }
     }
 }
