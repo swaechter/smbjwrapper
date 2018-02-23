@@ -11,7 +11,7 @@ Import the dependency:
     <dependency>
         <groupId>ch.swaechter</groupId>
         <artifactId>smbjwrapper</artifactId>
-        <version>0.0.2</version>
+        <version>0.0.3</version>
     </dependency>
 
 Provide a SLF4J logger backend implementation:
