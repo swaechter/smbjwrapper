@@ -184,17 +184,22 @@ public class SharedDirectoryAndFileTest {
             SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
             SharedFile subFile1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
             SharedFile subFile2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
+            Assertions.assertTrue(subDirectory1.isExisting());
+            Assertions.assertTrue(subFile1.isExisting());
+            Assertions.assertTrue(subFile2.isExisting());
 
             // Show all directories
             for (SharedDirectory sharedDirectory : transferDirectory.getDirectories()) {
                 String fileName = sharedDirectory.getName();
                 Assertions.assertTrue(fileName.equals(subDirectory1.getName()));
+                Assertions.assertTrue(sharedDirectory.isExisting());
             }
 
             // Show all files
             for (SharedFile sharedFile : subDirectory1.getFiles()) {
                 String fileName = sharedFile.getName();
                 Assertions.assertTrue(fileName.equals(subFile1.getName()) || fileName.equals(subFile2.getName()));
+                Assertions.assertTrue(sharedFile.isExisting());
             }
         }
     }

@@ -46,7 +46,8 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * @throws IOException Exception in case of a problem
      */
     public SharedDirectory createDirectoryInCurrentDirectory(String directoryName) throws IOException {
-        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, getPath() + "/" + directoryName);
+        String pathSuffix = !getPath().isEmpty() ? getPath() + "/" : "";
+        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, pathSuffix + directoryName);
         sharedDirectory.createDirectory();
         return sharedDirectory;
     }
@@ -59,7 +60,8 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * @throws IOException Exception in case of a problem
      */
     public SharedFile createFileInCurrentDirectory(String fileName) throws IOException {
-        SharedFile sharedFile = new SharedFile(sharedConnection, getPath() + "/" + fileName);
+        String pathSuffix = !getPath().isEmpty() ? getPath() + "/" : "";
+        SharedFile sharedFile = new SharedFile(sharedConnection, pathSuffix + fileName);
         sharedFile.createFile();
         return sharedFile;
     }
