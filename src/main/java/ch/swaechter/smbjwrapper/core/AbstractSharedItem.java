@@ -1,11 +1,7 @@
 package ch.swaechter.smbjwrapper.core;
 
-import com.hierynomus.smbj.SMBClient;
-import com.hierynomus.smbj.auth.AuthenticationContext;
+import ch.swaechter.smbjwrapper.SharedConnection;
 import com.hierynomus.smbj.common.SmbPath;
-import com.hierynomus.smbj.connection.Connection;
-import com.hierynomus.smbj.session.Session;
-import com.hierynomus.smbj.share.DiskShare;
 
 import java.io.IOException;
 
@@ -18,42 +14,25 @@ import java.io.IOException;
 public abstract class AbstractSharedItem<T extends SharedItem> implements SharedItem {
 
     /**
-     * Disk share that is used for accessing the Samba share.
+     * Shared connection to access the server.
      */
-    protected final DiskShare diskShare;
+    protected final SharedConnection sharedConnection;
 
     /**
-     * Path name information that are used for all operations.
+     * Path name of the abstract shared item.
      */
-    protected final SmbPath smbPath;
+    protected final String pathName;
 
     /**
-     * Create a new abstract shared item based on the server name, share name, path name and the authentication.
+     * Create a new abstract shared item based on the shared connection and the path name.
      *
-     * @param serverName            Name of the server
-     * @param shareName             Name of the share
-     * @param pathName              Path name
-     * @param authenticationContext Authentication for the connection
+     * @param sharedConnection Shared connection
+     * @param pathName         Path name
      * @throws IOException Exception in case of a problem
      */
-    public AbstractSharedItem(String serverName, String shareName, String pathName, AuthenticationContext authenticationContext) throws IOException {
-        SMBClient smbClient = new SMBClient();
-        Connection connection = smbClient.connect(serverName);
-        Session session = connection.authenticate(authenticationContext);
-        this.diskShare = (DiskShare) session.connectShare(shareName);
-        this.smbPath = new SmbPath(serverName, shareName, pathName);
-    }
-
-    /**
-     * Create an abstract shared item via copy constructor and a new path name.
-     *
-     * @param abstractSharedItem Shared item that will be reused
-     * @param pathName           New path name
-     */
-    protected AbstractSharedItem(AbstractSharedItem abstractSharedItem, String pathName) {
-        SmbPath otherSmbPath = abstractSharedItem.smbPath;
-        this.diskShare = abstractSharedItem.diskShare;
-        this.smbPath = new SmbPath(otherSmbPath.getHostname(), otherSmbPath.getShareName(), pathName);
+    public AbstractSharedItem(SharedConnection sharedConnection, String pathName) throws IOException {
+        this.sharedConnection = sharedConnection;
+        this.pathName = pathName;
     }
 
     /**
@@ -69,7 +48,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public boolean isDirectory() {
-        return diskShare.folderExists(smbPath.getPath());
+        return sharedConnection.getDiskShare().folderExists(pathName);
     }
 
     /**
@@ -77,7 +56,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public boolean isFile() {
-        return diskShare.fileExists(smbPath.getPath());
+        return sharedConnection.getDiskShare().fileExists(pathName);
     }
 
     /**
@@ -85,11 +64,11 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public String getName() {
-        if (!smbPath.getPath().isEmpty()) {
-            String[] parameters = smbPath.getPath().split("\\\\");
-            return parameters[parameters.length - 1];
+        if (!pathName.isEmpty()) {
+            int lastIndex = pathName.lastIndexOf("/");
+            return pathName.substring(lastIndex + 1, pathName.length());
         } else {
-            return "";
+            return pathName;
         }
     }
 
@@ -98,7 +77,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public String getServerName() {
-        return smbPath.getHostname();
+        return sharedConnection.getServerName();
     }
 
     /**
@@ -106,15 +85,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public String getShareName() {
-        return smbPath.getShareName();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getSmbPath() {
-        return smbPath.toUncPath();
+        return sharedConnection.getShareName();
     }
 
     /**
@@ -122,17 +93,26 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public String getPath() {
-        return smbPath.getPath();
+        return pathName;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public T getParentPath() {
-        if (!getName().equals(smbPath.getPath())) {
-            String parentPath = smbPath.getPath().substring(0, smbPath.getPath().length() - getName().length() - 1);
-            return createSharedNodeItem(parentPath);
+    public String getSmbPath() {
+        SmbPath smbPath = new SmbPath(getServerName(), getShareName(), pathName.replace("/", "\\"));
+        return smbPath.toUncPath();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public T getParentPath() throws IOException {
+        if (!isRootPath()) {
+            int lastIndex = pathName.lastIndexOf("/");
+            return createSharedNodeItem(pathName.substring(0, lastIndex));
         } else {
             return getRootPath();
         }
@@ -142,7 +122,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      * {@inheritDoc}
      */
     @Override
-    public T getRootPath() {
+    public T getRootPath() throws IOException {
         return createSharedNodeItem("");
     }
 
@@ -151,7 +131,9 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     @Override
     public boolean isRootPath() {
-        return getRootPath().equals(getParentPath());
+        // TODO: Fix /Directory
+        int lastIndex = getPath().lastIndexOf("/");
+        return lastIndex == 0 || lastIndex == -1;
     }
 
     /**
@@ -167,6 +149,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      *
      * @param pathName Path name of the shared item
      * @return Shared item
+     * @throws IOException Exception in case of a problem
      */
-    protected abstract T createSharedNodeItem(String pathName);
+    protected abstract T createSharedNodeItem(String pathName) throws IOException;
 }

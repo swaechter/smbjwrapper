@@ -26,96 +26,125 @@ You can also use a different backend implementation. For more information see ht
 
 ## Usage
 
-### Create an authentication for the server
+### Create a shared connection to the server
 
 Via username and password:
 
     AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN");
-    
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        // Do your work
+    }    
+
 Via anonymous user:
 
     AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        // Do your work
+    }
+
+Notes:
+
+* The created connection is not thread safe. As soon you are using several threads, create a new connection for each thread.
+* You don't have to use the try-with-resources statement that automatically closes the connection. You can also close the connection manually.
 
 ### Access the root share and list all directories and files
 
-    SharedDirectory rootDirectory = new SharedDirectory("127.0.0.1", "Share", authenticationContext);
-    for (SharedDirectory sharedDirectory : rootDirectory.getDirectories()) {
-        System.out.println(sharedDirectory.getName());
-    }
-    for (SharedFile sharedFile : rootDirectory.getFiles()) {
-        System.out.println(sharedFile.getName());
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedDirectory rootDirectory = new SharedDirectory(sharedConnection);
+        for (SharedDirectory sharedDirectory : rootDirectory.getDirectories()) {
+            System.out.println(sharedDirectory.getName());
+        }
+        for (SharedFile sharedFile : rootDirectory.getFiles()) {
+            System.out.println(sharedFile.getName());
+        }
     }
 
 ### Access a directory/file and get more information
     
-    SharedFile sharedFile = new SharedFile(rootDirectory, "File.txt");
-    System.out.println("Is existing: " + sharedFile.isExisting());
-    System.out.println("Is directory: " + sharedFile.isDirectory());
-    System.out.println("Is file: " + sharedFile.isFile());
-    System.out.println("Is root path: " + sharedFile.isRootPath());
-    System.out.println("Name: " + sharedFile.getName());
-    System.out.println("Server name: " + sharedFile.getServerName());
-    System.out.println("Share name: " + sharedFile.getShareName());
-    System.out.println("Path: " + sharedFile.getPath());
-    System.out.println("SMB path: " + sharedFile.getSmbPath());
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
+        System.out.println("Is existing: " + sharedFile.isExisting());
+        System.out.println("Is directory: " + sharedFile.isDirectory());
+        System.out.println("Is file: " + sharedFile.isFile());
+        System.out.println("Is root path: " + sharedFile.isRootPath());
+        System.out.println("Name: " + sharedFile.getName());
+        System.out.println("Server name: " + sharedFile.getServerName());
+        System.out.println("Share name: " + sharedFile.getShareName());
+        System.out.println("Path: " + sharedFile.getPath());
+        System.out.println("SMB path: " + sharedFile.getSmbPath());
+    }
 
 ### Access a subdirectory or file in a subdirectory
 
-    SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory/Subdirectory/Subdirectory");
-    SharedFile sharedFile = new SharedFile(rootDirectory, "Directory/Subdirectory/File.txt");
-
-Please note: The new path is always absolute and won't be appended to the path of the reused object. In case you want to create a hierarchy, get the path of the parent in advance and append the new path name.
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory/Subdirectory/Subdirectory");
+        SharedFile sharedFile = new SharedFile(sharedConnection, "Directory/Subdirectory/File.txt");
+    }
 
 ### Access a directory/file and traverse the tree
 
-    SharedFile sharedFile = new SharedFile(rootDirectory, "File.txt");
-    System.out.println("Is root path: " + sharedFile.isRootPath());
-    SharedDirectory parentDirectory = sharedFile.getParentPath();
-    SharedDirectory rootDirectory = sharedFile.getRootPath();
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
+        System.out.println("Is root path: " + sharedFile.isRootPath());
+        SharedDirectory parentDirectory = sharedFile.getParentPath();
+        SharedDirectory rootDirectory = sharedFile.getRootPath();
+    }
 
 ### Create directories/files
 
 Create a file:
 
-    SharedFile sharedFile = new SharedFile(rootDirectory, "File.txt");
-    sharedFile.createFile();
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
+        sharedFile.createFile();
+    }
 
 Create a directory:
 
-    SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
-    sharedDirectory.createDirectory();
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
+        sharedDirectory.createDirectory();
+    }
 
 Create a directory in the current directory (Same as `SharedDirectory.createDirectory` for path `Directory/Subdirectory`):
 
-    SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
-    SharedDirectory newSharedDirectory = sharedDirectory.createDirectoryInCurrentDirectory("Subdirectory");
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
+        SharedDirectory newSharedDirectory = sharedDirectory.createDirectoryInCurrentDirectory("Subdirectory");
+    }
 
 Create a file in the current directory (Same as `SharedFile.createFile` for path `Directory/Subfile`):
 
-    SharedDirectory sharedDirectory = new SharedDirectory(rootDirectory, "Directory");
-    SharedFile newSharedFile = sharedDirectory.createFileInCurrentDirectory("Subfile");
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
+        SharedFile newSharedFile = sharedDirectory.createFileInCurrentDirectory("Subfile");
+    }
 
 ### Upload and download a file
 
 Upload from an input stream:
 
-    SharedFile sharedFile = new SharedFile(rootDirectory, "File.txt");
-    InputStream inputStream = ... // Your input stream
-    OutputStream outputStream = sharedFile.getOutputStream();
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
+        InputStream inputStream = ... // Your input stream
+        OutputStream outputStream = sharedFile.getOutputStream();
 
-    IOUtils.copy(inputStream, outputStream);
-    inputStream.close();
-    outputStream.close();
+        IOUtils.copy(inputStream, outputStream);
+        inputStream.close();
+        outputStream.close();
+    }
 
 Download to an output stream:
 
-    SharedFile sharedFile = new SharedFile(rootDirectory, "File.txt");
-    InputStream inputStream = sharedFile.getInputStream();
-    OutputStream outputStream = ... // Your output stream
+    try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+        SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
+        InputStream inputStream = sharedFile.getInputStream();
+        OutputStream outputStream = ... // Your output stream
 
-    IOUtils.copy(inputStream, outputStream);
-    inputStream.close();
-    outputStream.close();
+        IOUtils.copy(inputStream, outputStream);
+        inputStream.close();
+        outputStream.close();
+    }
 
 ## License
 

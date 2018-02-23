@@ -1,5 +1,7 @@
 package ch.swaechter.smbjwrapper.core;
 
+import java.io.IOException;
+
 /**
  * This class provides an interface for a directory/file like filesystem structure.
  *
@@ -43,13 +45,6 @@ public interface SharedItem {
     String getShareName();
 
     /**
-     * Get the full SMB path including the server, share and path, separated by backslashes.
-     *
-     * @return Full SMB path
-     */
-    String getSmbPath();
-
-    /**
      * Get the name of the shared item. If the shared item is a root item, an string name will be returned.
      *
      * @return Real name or empty string
@@ -64,18 +59,27 @@ public interface SharedItem {
     String getPath();
 
     /**
+     * Get the full SMB path including the server, share and path, separated by backslashes.
+     *
+     * @return Full SMB path
+     */
+    String getSmbPath();
+
+    /**
      * Get the parent shared item. If the shared item us already the root item, the root item will be returned.
      *
      * @return Parent shared item
+     * @throws IOException Exception in case of a problem
      */
-    SharedItem getParentPath();
+    SharedItem getParentPath() throws IOException;
 
     /**
      * Get the root shared item. If the shared item us already the root item, the root item will be returned.
      *
      * @return Root shared item
+     * @throws IOException Exception in case of a problem
      */
-    SharedItem getRootPath();
+    SharedItem getRootPath() throws IOException;
 
     /**
      * Check if the current shared item or its parent is the root shared item.

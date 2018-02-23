@@ -6,7 +6,6 @@ import ch.swaechter.smbjwrapper.streams.SharedOutputStream;
 import com.hierynomus.msdtyp.AccessMask;
 import com.hierynomus.mssmb2.SMB2CreateDisposition;
 import com.hierynomus.mssmb2.SMB2ShareAccess;
-import com.hierynomus.smbj.auth.AuthenticationContext;
 import com.hierynomus.smbj.share.File;
 
 import java.io.IOException;
@@ -22,33 +21,21 @@ import java.util.EnumSet;
 public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
 
     /**
-     * Create a shared file based on the server name, share name, path name and the authentication.
+     * Create a new shared file based on the shared connection and the path name.
      *
-     * @param serverName            Name of the server
-     * @param shareName             Name of the share
-     * @param pathName    i ha           Path name
-     * @param authenticationContext Authentication for the connection
+     * @param sharedConnection Shared connection
+     * @param pathName         Path name
      * @throws IOException Exception in case of a problem
      */
-    public SharedFile(String serverName, String shareName, String pathName, AuthenticationContext authenticationContext) throws IOException {
-        super(serverName, shareName, pathName, authenticationContext);
-    }
-
-    /**
-     * Create shared file via copy constructor and a new path name.
-     *
-     * @param abstractSharedItem Shared item that will be reused
-     * @param pathName           New path name
-     */
-    public SharedFile(AbstractSharedItem abstractSharedItem, String pathName) {
-        super(abstractSharedItem, pathName);
+    public SharedFile(SharedConnection sharedConnection, String pathName) throws IOException {
+        super(sharedConnection, pathName);
     }
 
     /**
      * Create a new file.
      */
     public void createFile() {
-        File file = diskShare.openFile(smbPath.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
+        File file = sharedConnection.getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         file.close();
     }
 
@@ -56,7 +43,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * Delete the current file.
      */
     public void deleteFile() {
-        diskShare.rm(smbPath.getPath());
+        sharedConnection.getDiskShare().rm(getPath());
     }
 
     /**
@@ -65,7 +52,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * @return Input stream of the shared file
      */
     public InputStream getInputStream() {
-        File file = diskShare.openFile(smbPath.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
+        File file = sharedConnection.getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
         return new SharedInputStream(file);
     }
 
@@ -76,7 +63,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      */
 
     public OutputStream getOutputStream() {
-        File file = diskShare.openFile(smbPath.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
+        File file = sharedConnection.getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         return new SharedOutputStream(file);
     }
 
@@ -101,9 +88,10 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      *
      * @param pathName Path name of the shared item
      * @return New shared directory
+     * @throws IOException Exception in case of a problem
      */
     @Override
-    protected SharedDirectory createSharedNodeItem(String pathName) {
-        return new SharedDirectory(this, pathName);
+    protected SharedDirectory createSharedNodeItem(String pathName) throws IOException {
+        return new SharedDirectory(sharedConnection, pathName);
     }
 }
