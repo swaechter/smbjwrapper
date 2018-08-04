@@ -50,7 +50,7 @@ public class SharedDirectoryAndFileTest {
             Assertions.assertEquals(shareName, rootDirectory1.getShareName());
             Assertions.assertEquals("", rootDirectory1.getName());
             Assertions.assertEquals("", rootDirectory1.getPath());
-            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName + "\\", rootDirectory1.getSmbPath());
+            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName, rootDirectory1.getSmbPath());
             Assertions.assertEquals(rootDirectory1, rootDirectory1.getParentPath());
             Assertions.assertEquals(rootDirectory1, rootDirectory1.getRootPath());
             Assertions.assertTrue(rootDirectory1.isRootPath());
@@ -64,7 +64,7 @@ public class SharedDirectoryAndFileTest {
             Assertions.assertEquals(shareName, rootDirectory2.getShareName());
             Assertions.assertEquals("", rootDirectory2.getName());
             Assertions.assertEquals("", rootDirectory2.getPath());
-            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName + "\\", rootDirectory2.getSmbPath());
+            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName, rootDirectory2.getSmbPath());
             Assertions.assertEquals(rootDirectory2, rootDirectory2.getParentPath());
             Assertions.assertEquals(rootDirectory2, rootDirectory2.getRootPath());
             Assertions.assertTrue(rootDirectory2.isRootPath());
