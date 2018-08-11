@@ -32,7 +32,25 @@ Note: You can also use a different backend implementation. For more information 
 
 ### Create a shared connection to the server
 
+Via anonymous user:
+
+```java
+AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+    // Do your work
+}
+```
+
 Via username and password:
+
+```java
+AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "");
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+    // Do your work
+}
+```
+
+Via username/domain and password:
 
 ```java
 AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN");
@@ -41,10 +59,11 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 }
 ```
 
-Via anonymous user:
+In case you need a custom SMB configuration, you can also pass a smbj `SmbConfig` object to the shared connection:
 
 ```java
-AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
+SmbConfig smbConfig = SmbConfig.builder().withSoTimeout(3000).build();
+AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN", smbConfig);
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
     // Do your work
 }

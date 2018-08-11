@@ -1,6 +1,7 @@
 package ch.swaechter.smbjwrapper;
 
 import com.hierynomus.smbj.SMBClient;
+import com.hierynomus.smbj.SmbConfig;
 import com.hierynomus.smbj.auth.AuthenticationContext;
 import com.hierynomus.smbj.connection.Connection;
 import com.hierynomus.smbj.share.DiskShare;
@@ -48,7 +49,20 @@ public class SharedConnection implements AutoCloseable {
      * @throws IOException Exception in case of a problem
      */
     public SharedConnection(String serverName, String shareName, AuthenticationContext authenticationContext) throws IOException {
-        this.smbClient = new SMBClient();
+        this(serverName, shareName, authenticationContext, SmbConfig.builder().build());
+    }
+
+    /**
+     * Create a new connection to the server with a custom SMB client configuration. Be aware, that the shared connection itself is not thread safe.
+     *
+     * @param serverName            Server name of the server
+     * @param shareName             Share name of the server
+     * @param authenticationContext Authentication used to authenticate against
+     * @param smbConfig             Custom SMB configuration
+     * @throws IOException Exception in case of a problem
+     */
+    public SharedConnection(String serverName, String shareName, AuthenticationContext authenticationContext, SmbConfig smbConfig) throws IOException {
+        this.smbClient = new SMBClient(smbConfig);
         this.connection = smbClient.connect(serverName);
         this.diskShare = (DiskShare) connection.authenticate(authenticationContext).connectShare(shareName);
         this.serverName = serverName;

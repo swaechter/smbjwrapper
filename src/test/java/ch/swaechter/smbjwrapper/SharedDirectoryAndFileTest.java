@@ -1,5 +1,6 @@
 package ch.swaechter.smbjwrapper;
 
+import com.hierynomus.smbj.SmbConfig;
 import com.hierynomus.smbj.auth.AuthenticationContext;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
@@ -32,6 +33,22 @@ public class SharedDirectoryAndFileTest {
      * Anonymous authentication for the local test server.
      */
     private final AuthenticationContext authenticationContext = ServerUtils.getAuthenticationContext();
+
+    /**
+     * Test the custom SMB configuration.
+     *
+     * @throws Exception Exception in case of a problem
+     */
+    @Test
+    public void testConfig() throws Exception {
+        SmbConfig smbConfig = SmbConfig.builder().withSoTimeout(3000).build();
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext, smbConfig)) {
+            // Just check the root share directory
+            SharedDirectory rootDirectory1 = new SharedDirectory(sharedConnection);
+            Assertions.assertTrue(rootDirectory1.isExisting());
+            Assertions.assertTrue(rootDirectory1.isDirectory());
+        }
+    }
 
     /**
      * Test all root directories and file including their attribute methods.
