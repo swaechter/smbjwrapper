@@ -19,19 +19,19 @@ import java.util.UUID;
 public class SharedDirectoryAndFileTest {
 
     /**
-     * Server name of the local test server.
+     * Server hostname of the local test server.
      */
-    private final String serverName = "127.0.0.1";
+    private final String serverHostname = ServerUtils.getServerHostname();
 
     /**
      * Share name of the local test server.
      */
-    private final String shareName = "Share";
+    private final String shareName = ServerUtils.getShareName();
 
     /**
      * Anonymous authentication for the local test server.
      */
-    private final AuthenticationContext authenticationContext = AuthenticationContext.anonymous();
+    private final AuthenticationContext authenticationContext = ServerUtils.getAuthenticationContext();
 
     /**
      * Test all root directories and file including their attribute methods.
@@ -40,17 +40,17 @@ public class SharedDirectoryAndFileTest {
      */
     @Test
     public void testRootPaths() throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(serverName, shareName, authenticationContext)) {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             // Create a root share directory
             SharedDirectory rootDirectory1 = new SharedDirectory(sharedConnection);
             Assertions.assertTrue(rootDirectory1.isExisting());
             Assertions.assertTrue(rootDirectory1.isDirectory());
             Assertions.assertFalse(rootDirectory1.isFile());
-            Assertions.assertEquals(serverName, rootDirectory1.getServerName());
+            Assertions.assertEquals(serverHostname, rootDirectory1.getServerName());
             Assertions.assertEquals(shareName, rootDirectory1.getShareName());
             Assertions.assertEquals("", rootDirectory1.getName());
             Assertions.assertEquals("", rootDirectory1.getPath());
-            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName, rootDirectory1.getSmbPath());
+            Assertions.assertEquals("\\\\" + serverHostname + "\\" + shareName, rootDirectory1.getSmbPath());
             Assertions.assertEquals(rootDirectory1, rootDirectory1.getParentPath());
             Assertions.assertEquals(rootDirectory1, rootDirectory1.getRootPath());
             Assertions.assertTrue(rootDirectory1.isRootPath());
@@ -60,11 +60,11 @@ public class SharedDirectoryAndFileTest {
             Assertions.assertTrue(rootDirectory2.isExisting());
             Assertions.assertTrue(rootDirectory2.isDirectory());
             Assertions.assertFalse(rootDirectory2.isFile());
-            Assertions.assertEquals(serverName, rootDirectory2.getServerName());
+            Assertions.assertEquals(serverHostname, rootDirectory2.getServerName());
             Assertions.assertEquals(shareName, rootDirectory2.getShareName());
             Assertions.assertEquals("", rootDirectory2.getName());
             Assertions.assertEquals("", rootDirectory2.getPath());
-            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName, rootDirectory2.getSmbPath());
+            Assertions.assertEquals("\\\\" + serverHostname + "\\" + shareName, rootDirectory2.getSmbPath());
             Assertions.assertEquals(rootDirectory2, rootDirectory2.getParentPath());
             Assertions.assertEquals(rootDirectory2, rootDirectory2.getRootPath());
             Assertions.assertTrue(rootDirectory2.isRootPath());
@@ -74,11 +74,11 @@ public class SharedDirectoryAndFileTest {
             Assertions.assertFalse(rootFile1.isExisting());
             Assertions.assertFalse(rootFile1.isDirectory());
             Assertions.assertFalse(rootFile1.isFile());
-            Assertions.assertEquals(serverName, rootFile1.getServerName());
+            Assertions.assertEquals(serverHostname, rootFile1.getServerName());
             Assertions.assertEquals(shareName, rootFile1.getShareName());
             Assertions.assertEquals("File1.txt", rootFile1.getName());
             Assertions.assertEquals("File1.txt", rootFile1.getPath());
-            Assertions.assertEquals("\\\\" + serverName + "\\" + shareName + "\\File1.txt", rootFile1.getSmbPath());
+            Assertions.assertEquals("\\\\" + serverHostname + "\\" + shareName + "\\File1.txt", rootFile1.getSmbPath());
             Assertions.assertEquals(rootDirectory1, rootFile1.getParentPath());
             Assertions.assertEquals(rootDirectory1, rootFile1.getRootPath());
             Assertions.assertTrue(rootFile1.isRootPath());
@@ -101,7 +101,7 @@ public class SharedDirectoryAndFileTest {
      */
     @Test
     public void testRecreation() throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(serverName, shareName, authenticationContext)) {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             // Create the entry point directory
             SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, buildUniquePath());
 
@@ -175,7 +175,7 @@ public class SharedDirectoryAndFileTest {
      */
     @Test
     public void testGetDirectoriesAndFiles() throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(serverName, shareName, authenticationContext)) {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             // Create the entry point directory
             SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, buildUniquePath());
             transferDirectory.createDirectory();
@@ -211,7 +211,7 @@ public class SharedDirectoryAndFileTest {
      */
     @Test
     public void testUploadAndDownload() throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(serverName, shareName, authenticationContext)) {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             // Create the entry point directory
             SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, buildUniquePath());
             transferDirectory.createDirectory();
@@ -246,7 +246,7 @@ public class SharedDirectoryAndFileTest {
 
     @Test
     public void testOverflowSessionPool() throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(serverName, shareName, authenticationContext)) {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             for (int i = 0; i < 1000; i++) {
                 // Create the entry point directory
                 SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, buildUniquePath());
