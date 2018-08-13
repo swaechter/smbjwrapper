@@ -4,6 +4,7 @@ import ch.swaechter.smbjwrapper.core.AbstractSharedItem;
 import ch.swaechter.smbjwrapper.streams.SharedInputStream;
 import ch.swaechter.smbjwrapper.streams.SharedOutputStream;
 import com.hierynomus.msdtyp.AccessMask;
+import com.hierynomus.msfscc.fileinformation.FileStandardInformation;
 import com.hierynomus.mssmb2.SMB2CreateDisposition;
 import com.hierynomus.mssmb2.SMB2ShareAccess;
 import com.hierynomus.smbj.share.File;
@@ -63,6 +64,16 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
     public OutputStream getOutputStream() {
         File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         return new SharedOutputStream(file);
+    }
+
+    /**
+     * Get the file size of the shared item.
+     *
+     * @return File size of the shared items in bytes
+     */
+    public long getFileSize() {
+        FileStandardInformation fileStandardInformation = getDiskShare().getFileInformation(getPath()).getStandardInformation();
+        return fileStandardInformation.getEndOfFile();
     }
 
     /**

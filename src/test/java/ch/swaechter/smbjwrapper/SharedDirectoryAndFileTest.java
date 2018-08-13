@@ -281,7 +281,6 @@ public class SharedDirectoryAndFileTest {
             Assertions.assertTrue(subFile1.isExisting());
 
             // Check the file size
-            Assertions.assertEquals(0, subDirectory1.getFileSize());
             Assertions.assertEquals(0, subFile1.getFileSize());
 
             // Get the current date and check the creation time
@@ -328,7 +327,6 @@ public class SharedDirectoryAndFileTest {
             outputStream2.close();
 
             // Check the file size
-            Assertions.assertEquals(0, subDirectory1.getFileSize());
             Assertions.assertEquals(37888, subFile1.getFileSize());
 
             // Check the last write time

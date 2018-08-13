@@ -116,11 +116,4 @@ public interface SharedItem {
      */
 
     FileTime getChangeTime();
-
-    /**
-     * Get the file size of the shared item.
-     *
-     * @return File size of the shared items in bytes
-     */
-    long getFileSize();
 }

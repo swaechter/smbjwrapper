@@ -189,15 +189,6 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getFileSize() {
-        FileStandardInformation fileStandardInformation = getDiskShare().getFileInformation(pathName).getStandardInformation();
-        return fileStandardInformation.getEndOfFile();
-    }
-
-    /**
      * Check if the current and the given objects are equals.
      *
      * @param object Given object to compare against
