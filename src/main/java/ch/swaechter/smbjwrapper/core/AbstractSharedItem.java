@@ -2,6 +2,9 @@ package ch.swaechter.smbjwrapper.core;
 
 import ch.swaechter.smbjwrapper.SharedConnection;
 import ch.swaechter.smbjwrapper.utils.ShareUtils;
+import com.hierynomus.msdtyp.FileTime;
+import com.hierynomus.msfscc.fileinformation.FileBasicInformation;
+import com.hierynomus.msfscc.fileinformation.FileStandardInformation;
 import com.hierynomus.smbj.common.SmbPath;
 import com.hierynomus.smbj.share.DiskShare;
 
@@ -147,6 +150,51 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     public boolean isRootPath() {
         int lastIndex = getPath().lastIndexOf(PATH_SEPARATOR);
         return lastIndex == 0 || lastIndex == -1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileTime getCreationTime() {
+        FileBasicInformation fileBasicInformation = getDiskShare().getFileInformation(pathName).getBasicInformation();
+        return fileBasicInformation.getCreationTime();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileTime getLastAccessTime() {
+        FileBasicInformation fileBasicInformation = getDiskShare().getFileInformation(pathName).getBasicInformation();
+        return fileBasicInformation.getLastAccessTime();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileTime getLastWriteTime() {
+        FileBasicInformation fileBasicInformation = getDiskShare().getFileInformation(pathName).getBasicInformation();
+        return fileBasicInformation.getLastWriteTime();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FileTime getChangeTime() {
+        FileBasicInformation fileBasicInformation = getDiskShare().getFileInformation(pathName).getBasicInformation();
+        return fileBasicInformation.getChangeTime();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getFileSize() {
+        FileStandardInformation fileStandardInformation = getDiskShare().getFileInformation(pathName).getStandardInformation();
+        return fileStandardInformation.getEndOfFile();
     }
 
     /**

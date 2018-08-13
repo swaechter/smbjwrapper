@@ -1,5 +1,7 @@
 package ch.swaechter.smbjwrapper.core;
 
+import com.hierynomus.msdtyp.FileTime;
+
 /**
  * This class provides an interface for a directory/file like filesystem structure.
  *
@@ -83,4 +85,42 @@ public interface SharedItem {
      * @return Status of the check
      */
     boolean isRootPath();
+
+    /**
+     * Get the creation time of the shared item.
+     *
+     * @return Creation time of the shared item
+     */
+    FileTime getCreationTime();
+
+    /**
+     * Get the last access time of the shared item.
+     *
+     * @return Last access time of the shared item
+     */
+
+    FileTime getLastAccessTime();
+
+    /**
+     * Get the last write time of the shared item.
+     *
+     * @return Last write time of the shared item
+     */
+
+    FileTime getLastWriteTime();
+
+    /**
+     * Get the change time of the shared item.
+     *
+     * @return Change time of the shared item
+     */
+
+    FileTime getChangeTime();
+
+    /**
+     * Get the file size of the shared item.
+     *
+     * @return File size of the shared items in bytes
+     */
+    long getFileSize();
 }
