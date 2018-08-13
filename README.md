@@ -102,6 +102,11 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
     System.out.println("Share name: " + sharedFile.getShareName());
     System.out.println("Path: " + sharedFile.getPath());
     System.out.println("SMB path: " + sharedFile.getSmbPath());
+    System.out.println("Creation time: " + sharedFile.getCreationTime());
+    System.out.println("Last access time: " + sharedFile.getLastAccessTime());
+    System.out.println("Last write time: " + sharedFile.getLastWriteTime());
+    System.out.println("Change time: " + sharedFile.getChangeTime());
+    System.out.println("File size: " + sharedFile.getFileSize());
 }
 ```
 
