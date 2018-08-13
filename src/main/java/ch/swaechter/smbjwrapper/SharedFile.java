@@ -50,7 +50,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * @return Input stream of the shared file
      */
     public InputStream getInputStream() {
-        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
+        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN_IF, null);
         return new SharedInputStream(file);
     }
 
