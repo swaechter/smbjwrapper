@@ -364,6 +364,38 @@ public class SharedDirectoryAndFileTest {
     }
 
     @Test
+    public void testRemoteServerCopy() throws Exception {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
+            // Create the entry point directory
+            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, buildUniquePath());
+            transferDirectory.createDirectory();
+
+            // Create a temporary file
+            File contentFile = new File("src/test/resources/Screenshot.png");
+            File tempFile = File.createTempFile("smbjwrapper", ".tmp");
+            Assertions.assertTrue(tempFile.exists());
+
+            // Create the source file
+            SharedFile sourceFile = transferDirectory.createFileInCurrentDirectory("ScreenshotIn.png");
+            Assertions.assertTrue(sourceFile.isExisting());
+
+            // Upload a file
+            InputStream inputStream2 = new FileInputStream(contentFile);
+            OutputStream outputStream2 = sourceFile.getOutputStream();
+            IOUtils.copy(inputStream2, outputStream2);
+            inputStream2.close();
+            outputStream2.close();
+
+            // Copy the file via server side copy
+            String path = sourceFile.getParentPath().getPath();
+            SharedFile destinationFile = new SharedFile(sharedConnection, path + "/ScreenshotOut.png");
+            sourceFile.copyFileViaServerSideCopy(destinationFile);
+            Assertions.assertTrue(destinationFile.isExisting());
+            Assertions.assertEquals(sourceFile.getFileSize(), destinationFile.getFileSize());
+        }
+    }
+
+    @Test
     public void testOverflowSessionPool() throws Exception {
         try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             for (int i = 0; i < 1000; i++) {

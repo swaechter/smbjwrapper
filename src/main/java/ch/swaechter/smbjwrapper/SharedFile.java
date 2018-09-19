@@ -7,6 +7,9 @@ import com.hierynomus.msdtyp.AccessMask;
 import com.hierynomus.msfscc.fileinformation.FileStandardInformation;
 import com.hierynomus.mssmb2.SMB2CreateDisposition;
 import com.hierynomus.mssmb2.SMB2ShareAccess;
+import com.hierynomus.protocol.commons.buffer.Buffer;
+import com.hierynomus.protocol.commons.buffer.Buffer.BufferException;
+import com.hierynomus.protocol.transport.TransportException;
 import com.hierynomus.smbj.share.File;
 
 import java.io.InputStream;
@@ -43,6 +46,23 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      */
     public void deleteFile() {
         getDiskShare().rm(getPath());
+    }
+
+    /**
+     * Copy the current file to another file on the same server share via server side copy. This does not work as soon
+     * the files are on different shares (In that case copy the input/output streams). For more information check out
+     * this Samba article: https://wiki.samba.org/index.php/Server-Side_Copy
+     *
+     * @param destinationSharedFile Other file on the same server share
+     * @throws BufferException    Buffer related exception
+     * @throws TransportException Transport related exception
+     */
+    public void copyFileViaServerSideCopy(SharedFile destinationSharedFile) throws Buffer.BufferException, TransportException {
+        File sourceFile = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN_IF, null);
+        File destinationFile = getDiskShare().openFile(destinationSharedFile.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
+        sourceFile.remoteCopyTo(destinationFile);
+        sourceFile.close();
+        destinationFile.close();
     }
 
     /**
