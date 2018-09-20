@@ -168,6 +168,18 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 }
 ```
 
+### Copy a file on the same server share
+
+Copy a file on the same server share (In case they are different shares, use the download/upload above):
+
+```java
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+    SharedFile sourceFile = new SharedFile(sharedConnection, "Screenshot1.png");
+    SharedFile destinationFile = new SharedFile(sharedConnection, "Screenshot2.png");
+    sourceFile.copyFileViaServerSideCopy(destinationFile);
+}
+```
+
 ### Upload and download a file
 
 Upload from an input stream:
