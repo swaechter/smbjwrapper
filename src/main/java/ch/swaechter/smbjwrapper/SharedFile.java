@@ -58,11 +58,12 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * @throws TransportException Transport related exception
      */
     public void copyFileViaServerSideCopy(SharedFile destinationSharedFile) throws Buffer.BufferException, TransportException {
-        File sourceFile = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN_IF, null);
-        File destinationFile = getDiskShare().openFile(destinationSharedFile.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
-        sourceFile.remoteCopyTo(destinationFile);
-        sourceFile.close();
-        destinationFile.close();
+        try (
+            File sourceFile = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
+            File destinationFile = getDiskShare().openFile(destinationSharedFile.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
+        ) {
+            sourceFile.remoteCopyTo(destinationFile);
+        }
     }
 
     /**
@@ -71,7 +72,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      * @return Input stream of the shared file
      */
     public InputStream getInputStream() {
-        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN_IF, null);
+        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
         return new SharedInputStream(file);
     }
 
