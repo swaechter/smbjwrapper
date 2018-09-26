@@ -105,7 +105,7 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      */
     @Override
     public boolean equals(Object object) {
-        if (object != null && object instanceof SharedFile) {
+        if (object instanceof SharedFile) {
             SharedFile sharedFile = (SharedFile) object;
             return getSmbPath().equals(sharedFile.getSmbPath());
         } else {
