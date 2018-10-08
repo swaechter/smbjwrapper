@@ -99,10 +99,10 @@ public class SharedConnection implements AutoCloseable {
     /**
      * Close the connection.
      *
-     * @throws Exception Exception in case of a problem
+     * @throws IOException Exception in case of a problem
      */
     @Override
-    public void close() throws Exception {
+    public void close() throws IOException {
         connection.close();
     }
 }
