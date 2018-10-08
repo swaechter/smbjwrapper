@@ -408,6 +408,9 @@ public class SharedDirectoryAndFileTest {
             ensureDirectory1.ensureExists();
             Assertions.assertTrue(ensureDirectory1.isExisting());
 
+            // Ensure an existing directory
+            ensureDirectory1.ensureExists();
+
             // Ensure a non-recoverable directory existence
             try {
                 SharedFile ensureFile1 = transferDirectory.createFileInCurrentDirectory("EnsureDirectory2");
