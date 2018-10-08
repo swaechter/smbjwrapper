@@ -131,6 +131,18 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     }
 
     /**
+     * Ensure that the given directory path does exist - if not, the path is created. In case the path already exists, but is not a directory,
+     * an exception will be thrown to ensure application integrity.
+     */
+    public void ensureExists() {
+        if (!isExisting()) {
+            createDirectory();
+        } else if (!isDirectory()) {
+            throw new IllegalStateException("The given path does already exist, but not as directory");
+        }
+    }
+
+    /**
      * Get all file information that can be tested for the given predicate.
      *
      * @param predicate Predicate that will be tested

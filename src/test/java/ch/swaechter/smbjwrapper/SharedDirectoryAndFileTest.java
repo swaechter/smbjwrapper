@@ -396,6 +396,34 @@ public class SharedDirectoryAndFileTest {
     }
 
     @Test
+    public void testEnsureDirectory() throws Exception {
+        try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
+            // Create the entry point directory
+            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, buildUniquePath());
+            transferDirectory.createDirectory();
+
+            // Ensure the directory existence
+            SharedDirectory ensureDirectory1 = new SharedDirectory(sharedConnection, transferDirectory.getPath() + "/EnsureDirectory1");
+            Assertions.assertFalse(ensureDirectory1.isExisting());
+            ensureDirectory1.ensureExists();
+            Assertions.assertTrue(ensureDirectory1.isExisting());
+
+            // Ensure a non-recoverable directory existence
+            try {
+                SharedFile ensureFile1 = transferDirectory.createFileInCurrentDirectory("EnsureDirectory2");
+                Assertions.assertTrue(ensureFile1.isExisting());
+                Assertions.assertTrue(ensureFile1.isFile());
+
+                SharedDirectory ensureDirectory2 = new SharedDirectory(sharedConnection, transferDirectory.getPath() + "/EnsureDirectory2");
+                ensureDirectory2.ensureExists();
+                Assertions.fail("Ensure exception not failed");
+            } catch (IllegalStateException exception) {
+                Assertions.assertEquals("The given path does already exist, but not as directory", exception.getMessage());
+            }
+        }
+    }
+
+    @Test
     public void testOverflowSessionPool() throws Exception {
         try (SharedConnection sharedConnection = new SharedConnection(serverHostname, shareName, authenticationContext)) {
             for (int i = 0; i < 1000; i++) {
