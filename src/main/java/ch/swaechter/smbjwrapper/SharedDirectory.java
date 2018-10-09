@@ -36,6 +36,18 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     }
 
     /**
+     * Ensure that the given directory path does exist - if not, the path is created. In case the path already exists, but is not a directory,
+     * an exception will be thrown to ensure application integrity.
+     */
+    public void ensureExists() {
+        if (!isExisting()) {
+            createDirectory();
+        } else if (!isDirectory()) {
+            throw new IllegalStateException("The given path does already exist, but not as directory");
+        }
+    }
+
+    /**
      * Create a directory in the current directory.
      *
      * @param directoryName Name of the new directory
@@ -103,6 +115,7 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
         return sharedFiles;
     }
 
+
     /**
      * Check if the current and the given objects are equals.
      *
@@ -128,18 +141,6 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     @Override
     protected SharedDirectory createSharedNodeItem(String pathName) {
         return new SharedDirectory(getSharedConnection(), pathName);
-    }
-
-    /**
-     * Ensure that the given directory path does exist - if not, the path is created. In case the path already exists, but is not a directory,
-     * an exception will be thrown to ensure application integrity.
-     */
-    public void ensureExists() {
-        if (!isExisting()) {
-            createDirectory();
-        } else if (!isDirectory()) {
-            throw new IllegalStateException("The given path does already exist, but not as directory");
-        }
     }
 
     /**
