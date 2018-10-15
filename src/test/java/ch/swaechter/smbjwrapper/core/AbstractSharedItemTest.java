@@ -8,6 +8,7 @@ import ch.swaechter.smbjwrapper.helpers.TestConnectionFactory;
 import ch.swaechter.smbjwrapper.helpers.TestHelpers;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.*;
@@ -22,9 +23,8 @@ public class AbstractSharedItemTest {
      * @param testConnection Parameterized test connection data
      * @throws Exception Exception in case of a problem
      */
-    // TODO: Improve the test case
-    //@ParameterizedTest
-    //@MethodSource("getTestConnections")
+    @ParameterizedTest
+    @MethodSource("getTestConnections")
     public void testAttributes(TestConnection testConnection) throws Exception {
         try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Get the start date and create the entry point directory
