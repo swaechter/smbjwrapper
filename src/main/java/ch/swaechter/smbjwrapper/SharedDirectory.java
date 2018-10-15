@@ -2,10 +2,15 @@ package ch.swaechter.smbjwrapper;
 
 import ch.swaechter.smbjwrapper.core.AbstractSharedItem;
 import ch.swaechter.smbjwrapper.utils.ShareUtils;
+import com.hierynomus.msdtyp.AccessMask;
 import com.hierynomus.msfscc.fileinformation.FileAllInformation;
 import com.hierynomus.msfscc.fileinformation.FileIdBothDirectoryInformation;
+import com.hierynomus.mssmb2.SMB2CreateDisposition;
+import com.hierynomus.mssmb2.SMB2ShareAccess;
+import com.hierynomus.smbj.share.Directory;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -115,6 +120,17 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
         return sharedFiles;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void renameTo(String newFileName, boolean replaceIfExist) {
+        try (Directory directory = getDiskShare().openDirectory(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null)) {
+            String newFilePath = getParentPath().getPath() + PATH_SEPARATOR + newFileName;
+            directory.rename(newFilePath, replaceIfExist);
+            setPathName(newFilePath);
+        }
+    }
 
     /**
      * Check if the current and the given objects are equals.

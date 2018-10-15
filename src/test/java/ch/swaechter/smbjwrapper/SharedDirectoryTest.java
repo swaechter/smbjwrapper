@@ -270,6 +270,63 @@ public class SharedDirectoryTest {
         }
     }
 
+    /**
+     * Test the renaming of directories.
+     *
+     * @param testConnection Parameterized test connection data
+     * @throws Exception Exception in case of a problem
+     */
+    @ParameterizedTest
+    @MethodSource("getTestConnections")
+    public void testRenaming(TestConnection testConnection) throws Exception {
+        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Create the entry point directory
+            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            transferDirectory.createDirectory();
+
+            // Create a first directory
+            SharedDirectory sharedDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory1");
+            Assertions.assertTrue(sharedDirectory1.isExisting());
+
+            // Create a second directory
+            SharedDirectory sharedDirectory2 = transferDirectory.createDirectoryInCurrentDirectory("Directory2");
+            Assertions.assertTrue(sharedDirectory2.isExisting());
+
+            // Create a first file
+            SharedFile sharedFile1 = transferDirectory.createFileInCurrentDirectory("File1");
+            Assertions.assertTrue(sharedFile1.isExisting());
+
+            // Do a regular rename
+            sharedDirectory1.renameTo("Directory1New", false);
+            Assertions.assertEquals("Directory1New", sharedDirectory1.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", sharedDirectory1.getPath());
+
+            // Do a rename and trigger an exception
+            try {
+                sharedDirectory1.renameTo("Directory2", false);
+                Assertions.fail("Rename without replace flag should fail");
+            } catch (Exception exception) {
+                Assertions.assertEquals("Directory1New", sharedDirectory1.getName());
+                Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", sharedDirectory1.getPath());
+            }
+
+            // Do a replace rename
+            sharedDirectory1.renameTo("Directory2", true);
+            Assertions.assertEquals("Directory2", sharedDirectory1.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Directory2", sharedDirectory1.getPath());
+
+            // Do a rename to a file and trigger an exception
+            try {
+                sharedDirectory1.renameTo("File1", true);
+                Assertions.fail("Rename a directory to a file should fail");
+            } catch (Exception eception) {
+                Assertions.assertTrue(sharedDirectory1.isExisting());
+                Assertions.assertEquals("Directory2", sharedDirectory1.getName());
+                Assertions.assertTrue(sharedFile1.isFile());
+            }
+        }
+    }
+
     private static Stream getTestConnections() {
         return TestConnectionFactory.getTestConnections();
     }
