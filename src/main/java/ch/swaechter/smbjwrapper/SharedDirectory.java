@@ -223,6 +223,12 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
         }
     }
 
+    /**
+     * Sort all items alphabetically.
+     *
+     * @param sharedItems List with the shared items to be sorted
+     * @return Sorted list (Sorting is done in-place, value is returned for improved readability)
+     */
     private List<SharedItem> sortItems(List<SharedItem> sharedItems) {
         sharedItems.sort(Comparator.comparing(SharedItem::getPath));
         return sharedItems;
