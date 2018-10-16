@@ -12,7 +12,7 @@ Import the dependency:
 <dependency>
     <groupId>ch.swaechter</groupId>
     <artifactId>smbjwrapper</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
 </dependency>
 ```
 
@@ -87,6 +87,22 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
     }
 }
 ```
+
+### Access the root share and list all specific files and directories by regex pattern or predicate
+
+```java
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+    SharedDirectory rootDirectory = new SharedDirectory(sharedConnection);
+
+    // List non-recursive by name
+    List<SharedItem> sharedItems1 = rootDirectory.listFiles("MyFile.txt", false);
+
+    // List recursive by predicate checking
+    List<SharedItem> sharedItems2 = rootDirectory.listFiles(sharedItem -> sharedItem.getName().contains("MyFile.txt"), true);
+}
+```
+
+Notes: The given entry path is fully search and can lead to performance issues! There is no server side file filtering!
 
 ### Access a directory/file and get more information
 
@@ -170,13 +186,38 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 
 ### Copy a file on the same server share
 
-Copy a file on the same server share (In case they are different shares, use the download/upload above):
+Copy a file on the same server share (In case they are different shares, use the download/upload bellow):
 
 ```java
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
     SharedFile sourceFile = new SharedFile(sharedConnection, "Screenshot1.png");
     SharedFile destinationFile = new SharedFile(sharedConnection, "Screenshot2.png");
     sourceFile.copyFileViaServerSideCopy(destinationFile);
+}
+```
+
+### Rename a file or directory
+
+Rename a file or directory with the possibility to replace it's existing pendant:
+
+```java
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+    SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
+    sharedFile.renameTo("DirectoryRenamed.txt");
+
+    SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
+    sharedFile.renameFile("FileRenamed.txt");
+}
+```
+
+### Ensure a directory exist
+
+Ensure that a directory exists (Atuocreation if required):
+
+```java
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+    SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
+    sharedDirectory.ensureExists();
 }
 ```
 
