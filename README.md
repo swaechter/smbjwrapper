@@ -102,7 +102,7 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 }
 ```
 
-Notes: The given entry path is fully search and can lead to performance issues! There is no server side file filtering!
+Note: The given entry path is fully accessed and filtered/searched on the client side (There is no support for server side filtering). This can lead to performance issue with large file trees.
 
 ### Access a directory/file and get more information
 
@@ -212,7 +212,7 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 
 ### Ensure a directory exist
 
-Ensure that a directory exists (Atuocreation if required):
+Ensure that a directory exists (Autocreation if required):
 
 ```java
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
