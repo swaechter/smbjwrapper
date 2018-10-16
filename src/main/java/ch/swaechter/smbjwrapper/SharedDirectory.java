@@ -1,6 +1,7 @@
 package ch.swaechter.smbjwrapper;
 
 import ch.swaechter.smbjwrapper.core.AbstractSharedItem;
+import ch.swaechter.smbjwrapper.core.SharedItem;
 import ch.swaechter.smbjwrapper.utils.ShareUtils;
 import com.hierynomus.msdtyp.AccessMask;
 import com.hierynomus.msfscc.fileinformation.FileAllInformation;
@@ -9,10 +10,13 @@ import com.hierynomus.mssmb2.SMB2CreateDisposition;
 import com.hierynomus.mssmb2.SMB2ShareAccess;
 import com.hierynomus.smbj.share.Directory;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * This class represents a shared directory.
@@ -98,12 +102,8 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * @return List with all directories
      */
     public List<SharedDirectory> getDirectories() {
-        List<SharedDirectory> sharedDirectories = new ArrayList<>();
-        Predicate<FileAllInformation> predicate = (fileAllInformation) -> fileAllInformation.getStandardInformation().isDirectory();
-        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getFileIdBothDirectoryInformations(predicate)) {
-            sharedDirectories.add(new SharedDirectory(getSharedConnection(), getPath() + PATH_SEPARATOR + fileIdBothDirectoryInformation.getFileName()));
-        }
-        return sharedDirectories;
+        List<SharedItem> sharedItems = sortItems(listItems(SharedItem::isDirectory, false));
+        return sharedItems.stream().map(item -> (SharedDirectory) item).collect(Collectors.toList());
     }
 
     /**
@@ -112,12 +112,33 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * @return List with all files
      */
     public List<SharedFile> getFiles() {
-        List<SharedFile> sharedFiles = new ArrayList<>();
-        Predicate<FileAllInformation> predicate = (fileAllInformation) -> !fileAllInformation.getStandardInformation().isDirectory();
-        for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getFileIdBothDirectoryInformations(predicate)) {
-            sharedFiles.add(new SharedFile(getSharedConnection(), getPath() + PATH_SEPARATOR + fileIdBothDirectoryInformation.getFileName()));
-        }
-        return sharedFiles;
+        List<SharedItem> sharedItems = sortItems(listItems(SharedItem::isFile, false));
+        return sharedItems.stream().map(item -> (SharedFile) item).collect(Collectors.toList());
+    }
+
+    /**
+     * List all files and directories that match the search predicate. A recursive search is possible and will result
+     * in a flat list with all matching elements.
+     *
+     * @param searchPredicate Search predicate that is used for testing
+     * @param searchRecursive Flag to search recursive
+     * @return Flat list with all matching files and directories
+     */
+    public List<SharedItem> listFiles(Predicate<SharedItem> searchPredicate, boolean searchRecursive) {
+        return sortItems(listItems(searchPredicate, searchRecursive));
+    }
+
+    /**
+     * List all files and directories that match the search pattern. A recursive search is possible and will result
+     * in a flat list with all matching elements.
+     *
+     * @param searchPattern   Search regex pattern that is used for matching
+     * @param searchRecursive Flag to search recursive
+     * @return Flat list with all matching files and directories
+     */
+    public List<SharedItem> listFiles(String searchPattern, boolean searchRecursive) {
+        Pattern pattern = Pattern.compile(searchPattern);
+        return sortItems(listItems((sharedItem -> pattern.matcher(sharedItem.getName()).matches()), searchRecursive));
     }
 
     /**
@@ -160,24 +181,50 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     }
 
     /**
-     * Get all file information that can be tested for the given predicate.
+     * List all files and directories based on the predicate and return them as flat list.
      *
-     * @param predicate Predicate that will be tested
-     * @return List of all valid file information
+     * @param searchPredicate Search predicate each file object is checked against
+     * @param searchRecursive Flag to search recursive
+     * @return Flat listh with all matching share items
      */
-    private List<FileIdBothDirectoryInformation> getFileIdBothDirectoryInformations(Predicate<FileAllInformation> predicate) {
+    private List<SharedItem> listItems(Predicate<SharedItem> searchPredicate, boolean searchRecursive) {
         String smbDirectoryPath = getPath();
-        List<FileIdBothDirectoryInformation> fileIdBothDirectoryInformations = new ArrayList<>();
+        List<SharedItem> sharedItems = new LinkedList<>();
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getDiskShare().list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
+            String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + PATH_SEPARATOR + fileName;
             if (ShareUtils.isValidSharedItemName(fileName)) {
-                String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + PATH_SEPARATOR + fileName;
                 FileAllInformation fileAllInformation = getDiskShare().getFileInformation(filePath);
-                if (predicate.test(fileAllInformation)) {
-                    fileIdBothDirectoryInformations.add(fileIdBothDirectoryInformation);
+                if (fileAllInformation.getStandardInformation().isDirectory()) {
+                    SharedDirectory sharedDirectory = new SharedDirectory(getSharedConnection(), filePath);
+                    filterItem(sharedItems, sharedDirectory, searchPredicate);
+                    if (searchRecursive) {
+                        sharedItems.addAll(sharedDirectory.listFiles(searchPredicate, true));
+                    }
+                } else {
+                    SharedFile sharedFile = new SharedFile(getSharedConnection(), filePath);
+                    filterItem(sharedItems, sharedFile, searchPredicate);
                 }
             }
         }
-        return fileIdBothDirectoryInformations;
+        return sharedItems;
+    }
+
+    /**
+     * Filter a shared item against the valid item names and a test predicate, used for filtering.
+     *
+     * @param sharedItems     List with all succeeded share items
+     * @param sharedItem      Current share item to check
+     * @param searchPredicate Test predicate for the check
+     */
+    private void filterItem(List<SharedItem> sharedItems, SharedItem sharedItem, Predicate<SharedItem> searchPredicate) {
+        if (searchPredicate.test(sharedItem)) {
+            sharedItems.add(sharedItem);
+        }
+    }
+
+    private List<SharedItem> sortItems(List<SharedItem> sharedItems) {
+        sharedItems.sort(Comparator.comparing(SharedItem::getPath));
+        return sharedItems;
     }
 }

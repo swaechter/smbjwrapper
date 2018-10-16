@@ -1,5 +1,6 @@
 package ch.swaechter.smbjwrapper;
 
+import ch.swaechter.smbjwrapper.core.SharedItem;
 import ch.swaechter.smbjwrapper.helpers.TestConnection;
 import ch.swaechter.smbjwrapper.helpers.TestConnectionFactory;
 import ch.swaechter.smbjwrapper.helpers.TestHelpers;
@@ -12,6 +13,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class SharedDirectoryTest {
@@ -180,7 +183,7 @@ public class SharedDirectoryTest {
             // Show all directories
             for (SharedDirectory sharedDirectory : transferDirectory.getDirectories()) {
                 String fileName = sharedDirectory.getName();
-                Assertions.assertTrue(fileName.equals(subDirectory1.getName()));
+                Assertions.assertEquals(fileName, subDirectory1.getName());
                 Assertions.assertTrue(sharedDirectory.isExisting());
             }
 
@@ -324,6 +327,54 @@ public class SharedDirectoryTest {
                 Assertions.assertEquals("Directory2", sharedDirectory1.getName());
                 Assertions.assertTrue(sharedFile1.isFile());
             }
+        }
+    }
+
+    /**
+     * Test the directory listing.
+     *
+     * @param testConnection Parameterized test connection data
+     * @throws Exception Exception in case of a problem
+     */
+    @ParameterizedTest
+    @MethodSource("getTestConnections")
+    public void testList(TestConnection testConnection) throws Exception {
+        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Create the entry point directory
+            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            transferDirectory.createDirectory();
+
+            // Create the directories
+            List<String> directories = Arrays.asList("Dir1", "Dir1/Dir2", "Dir1/Dir2/Dir3", "Dir4", "Dir5", "Dir5/Dir1");
+            directories.forEach(path -> new SharedDirectory(sharedConnection, transferDirectory.getPath() + "/" + path).createDirectory());
+
+            // Create the files
+            List<String> files = Arrays.asList("File1", "Dir1/Dir2/File2", "Dir1/Dir2/File1", "Dir4/File3", "Dir5/Dir1/File3");
+            files.forEach(path -> new SharedFile(sharedConnection, transferDirectory.getPath() + "/" + path).createFile());
+
+            // Search for a few directories
+            List<SharedItem> sharedItems1 = transferDirectory.listFiles("Dir1", false);
+            Assertions.assertEquals(1, sharedItems1.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems1.get(0).getPath());
+
+            List<SharedItem> sharedItems2 = transferDirectory.listFiles("Dir1", true);
+            Assertions.assertEquals(2, sharedItems2.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems2.get(0).getPath());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir5/Dir1", sharedItems2.get(1).getPath());
+
+            List<SharedItem> sharedItems3 = transferDirectory.listFiles("Dir3", true);
+            Assertions.assertEquals(1, sharedItems3.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/Dir3", sharedItems3.get(0).getPath());
+
+            // Search for a few files
+            List<SharedItem> sharedItems4 = transferDirectory.listFiles("File1", false);
+            Assertions.assertEquals(1, sharedItems4.size());
+            Assertions.assertEquals("File1", sharedItems4.get(0).getName());
+
+            List<SharedItem> sharedItems5 = transferDirectory.listFiles("File1", true);
+            Assertions.assertEquals(2, sharedItems5.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", sharedItems5.get(0).getPath());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File1", sharedItems5.get(1).getPath());
         }
     }
 
