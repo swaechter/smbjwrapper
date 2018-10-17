@@ -206,7 +206,7 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
     sharedFile.renameTo("DirectoryRenamed.txt");
 
     SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
-    sharedFile.renameFile("FileRenamed.txt");
+    sharedFile.renameTo("FileRenamed.txt");
 }
 ```
 
