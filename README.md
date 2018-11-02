@@ -63,8 +63,8 @@ In case you need a custom SMB configuration, you can also pass a smbj `SmbConfig
 
 ```java
 SmbConfig smbConfig = SmbConfig.builder().withSoTimeout(3000).build();
-AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN", smbConfig);
-try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
+AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN");
+try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext, smbConfig)) {
     // Do your work
 }
 ```
@@ -203,10 +203,10 @@ Rename a file or directory with the possibility to replace it's existing pendant
 ```java
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
     SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
-    sharedFile.renameTo("DirectoryRenamed.txt");
+    sharedDirectory.renameTo("DirectoryRenamed.txt", false);
 
     SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
-    sharedFile.renameTo("FileRenamed.txt");
+    sharedFile.renameTo("FileRenamed.txt", true); // Replace an existing file
 }
 ```
 
