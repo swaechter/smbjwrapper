@@ -145,11 +145,11 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
      * {@inheritDoc}
      */
     @Override
-    public void renameTo(String newFileName, boolean replaceIfExist) {
+    public SharedDirectory renameTo(String newDirectoryName, boolean replaceIfExist) {
         try (Directory directory = getDiskShare().openDirectory(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null)) {
-            String newFilePath = getParentPath().getPath() + PATH_SEPARATOR + newFileName;
-            directory.rename(newFilePath, replaceIfExist);
-            setPathName(newFilePath);
+            String newDirectoryPath = getParentPath().getPath() + PATH_SEPARATOR + newDirectoryName;
+            directory.rename(newDirectoryPath, replaceIfExist);
+            return new SharedDirectory(getSharedConnection(), newDirectoryPath);
         }
     }
 

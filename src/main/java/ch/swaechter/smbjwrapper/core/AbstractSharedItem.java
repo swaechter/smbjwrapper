@@ -33,7 +33,7 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     /**
      * Path name of the abstract shared item.
      */
-    private String pathName;
+    private final String pathName;
 
     /**
      * Create a new abstract shared item based on the shared connection and the path name.
@@ -44,7 +44,11 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
      */
     public AbstractSharedItem(SharedConnection sharedConnection, String pathName) {
         this.sharedConnection = sharedConnection;
-        setPathName(pathName);
+        if (ShareUtils.isValidSharedItemName(pathName)) {
+            this.pathName = pathName;
+        } else {
+            throw new RuntimeException("The given path name is not a valid share path");
+        }
     }
 
     /**
@@ -181,19 +185,6 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     public FileTime getChangeTime() {
         FileBasicInformation fileBasicInformation = getDiskShare().getFileInformation(pathName).getBasicInformation();
         return fileBasicInformation.getChangeTime();
-    }
-
-    /**
-     * Set the path name of the shared item
-     *
-     * @param pathName New path name
-     */
-    protected void setPathName(String pathName) {
-        if (ShareUtils.isValidSharedItemName(pathName)) {
-            this.pathName = pathName;
-        } else {
-            throw new RuntimeException("The given path name is not a valid share path");
-        }
     }
 
     /**

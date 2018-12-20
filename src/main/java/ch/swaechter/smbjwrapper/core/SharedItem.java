@@ -87,12 +87,13 @@ public interface SharedItem {
     boolean isRootPath();
 
     /**
-     * Rename the current item.
+     * Rename the current item and return it as newly renamed item.
      *
      * @param newFileName    New file name
-     * @param replaceIfExist Flag to replace an existing path
+     * @param replaceIfExist Flag to replace an existing path of the same type (File/Directory)
+     * @return Newly renamed shared item with the new path
      */
-    void renameTo(String newFileName, boolean replaceIfExist);
+    SharedItem renameTo(String newFileName, boolean replaceIfExist);
 
     /**
      * Get the creation time of the shared item.

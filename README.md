@@ -201,17 +201,21 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 
 ### Rename a file or directory
 
-Rename a file or directory with the possibility to replace it's existing pendant:
+Rename a file or directory with the possibility to replace it's existing pendant (The renamed file/directory will be returned as new object):
 
 ```java
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
     SharedDirectory sharedDirectory = new SharedDirectory(sharedConnection, "Directory");
-    sharedDirectory.renameTo("DirectoryRenamed.txt", false);
+    SharedDirectory renamedSharedDirectory = sharedDirectory.renameTo("DirectoryRenamed.txt", false);
 
     SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
-    sharedFile.renameTo("FileRenamed.txt", true); // Replace an existing file
+    SharedFile renamedSharedFile = sharedFile.renameTo("FileRenamed.txt", true); // Replace an existing file
 }
 ```
+
+Notes:
+
+* You can only rename and replace a path of the same type (File/Directory). For example it's not possible to rename and replace a file to an existing directory and vica versa
 
 ### Ensure a directory exist
 

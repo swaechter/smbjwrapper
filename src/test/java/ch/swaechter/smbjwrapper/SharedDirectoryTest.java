@@ -300,13 +300,13 @@ public class SharedDirectoryTest {
             Assertions.assertTrue(sharedFile1.isExisting());
 
             // Do a regular rename
-            sharedDirectory1.renameTo("Directory1New", false);
+            sharedDirectory1 = sharedDirectory1.renameTo("Directory1New", false);
             Assertions.assertEquals("Directory1New", sharedDirectory1.getName());
             Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", sharedDirectory1.getPath());
 
             // Do a rename and trigger an exception
             try {
-                sharedDirectory1.renameTo("Directory2", false);
+                sharedDirectory1 = sharedDirectory1.renameTo("Directory2", false);
                 Assertions.fail("Rename without replace flag should fail");
             } catch (Exception exception) {
                 Assertions.assertEquals("Directory1New", sharedDirectory1.getName());
@@ -314,13 +314,13 @@ public class SharedDirectoryTest {
             }
 
             // Do a replace rename
-            sharedDirectory1.renameTo("Directory2", true);
+            sharedDirectory1 = sharedDirectory1.renameTo("Directory2", true);
             Assertions.assertEquals("Directory2", sharedDirectory1.getName());
             Assertions.assertEquals(transferDirectory.getPath() + "/Directory2", sharedDirectory1.getPath());
 
             // Do a rename to a file and trigger an exception
             try {
-                sharedDirectory1.renameTo("File1", true);
+                sharedDirectory1 = sharedDirectory1.renameTo("File1", true);
                 Assertions.fail("Rename a directory to a file should fail");
             } catch (Exception eception) {
                 Assertions.assertTrue(sharedDirectory1.isExisting());
