@@ -23,13 +23,14 @@ public class SharedOutputStream extends OutputStream {
     private final OutputStream outputStream;
 
     /**
-     * Create a new decorated output stream that respects the reference couting close mechanism of the file.
+     * Create a new decorated output stream that respects the reference counting close mechanism of the file. It's possible to append or
+     * overwrite existing content.
      *
      * @param file File that will provide the output stream
      */
-    public SharedOutputStream(File file) {
+    public SharedOutputStream(File file, boolean appendContent) {
         this.file = file;
-        this.outputStream = file.getOutputStream();
+        this.outputStream = file.getOutputStream(appendContent);
     }
 
     /**
@@ -44,7 +45,16 @@ public class SharedOutputStream extends OutputStream {
      * {@inheritDoc}
      */
     @Override
+    public void flush() throws IOException {
+        outputStream.flush();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void close() throws IOException {
+        outputStream.flush();
         outputStream.close();
         file.close();
     }

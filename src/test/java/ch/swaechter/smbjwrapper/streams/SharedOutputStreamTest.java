@@ -30,10 +30,10 @@ public class SharedOutputStreamTest {
 
         // Create a mocked file object
         File file = Mockito.mock(File.class);
-        Mockito.when(file.getOutputStream()).thenReturn(outputStream);
+        Mockito.when(file.getOutputStream(false)).thenReturn(outputStream);
 
         // Write the string
-        SharedOutputStream sharedOutputStream = new SharedOutputStream(file);
+        SharedOutputStream sharedOutputStream = new SharedOutputStream(file, false);
         IOUtils.write(testData, sharedOutputStream, StandardCharsets.UTF_8);
         sharedOutputStream.close();
 
@@ -41,6 +41,7 @@ public class SharedOutputStreamTest {
         Assertions.assertEquals(testData, new String(outputStream.toByteArray()));
         Mockito.verify(file, Mockito.times(1)).close();
         Mockito.verify(outputStream, Mockito.times(5)).write(Mockito.anyInt());
+        Mockito.verify(outputStream, Mockito.times(1)).flush();
         Mockito.verify(outputStream, Mockito.times(1)).close();
     }
 }

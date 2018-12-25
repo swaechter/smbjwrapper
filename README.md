@@ -230,13 +230,18 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 
 ### Upload and download a file
 
-Upload from an input stream:
+Upload from an input stream and overwrite/append to the file:
 
 ```java
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
     SharedFile sharedFile = new SharedFile(sharedConnection, "File.txt");
     InputStream inputStream = ... // Your input stream
+
+    // Overwrite the file
     OutputStream outputStream = sharedFile.getOutputStream();
+
+    // Append to the file
+    OutputStream outputStream = sharedFile.getOutputStream(true);
 
     IOUtils.copy(inputStream, outputStream);
     inputStream.close();
@@ -244,7 +249,7 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 }
 ```
 
-Download to an output stream:
+Download to an output stream from the file:
 
 ```java
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {

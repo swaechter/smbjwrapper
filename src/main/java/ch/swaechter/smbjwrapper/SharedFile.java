@@ -83,8 +83,20 @@ public final class SharedFile extends AbstractSharedItem<SharedDirectory> {
      */
 
     public OutputStream getOutputStream() {
-        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
-        return new SharedOutputStream(file);
+        return getOutputStream(false);
+    }
+
+    /**
+     * Get the output stream of the file that can be used to upload and append content to this file.
+     *
+     * @param appendContent Append content or overwrite it
+     * @return Output stream of the shared file
+     */
+
+    public OutputStream getOutputStream(boolean appendContent) {
+        SMB2CreateDisposition mode = !appendContent ? SMB2CreateDisposition.FILE_OVERWRITE_IF : SMB2CreateDisposition.FILE_OPEN_IF;
+        File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, mode, null);
+        return new SharedOutputStream(file, appendContent);
     }
 
     /**

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
 public class SharedFileTest {
@@ -55,6 +56,55 @@ public class SharedFileTest {
             // Clean up
             transferDirectory.deleteDirectoryRecursively();
             Assertions.assertFalse(transferDirectory.isExisting());
+        }
+    }
+
+    /**
+     * Test the appended upload.
+     *
+     * @param testConnection Parameterized test connection data
+     * @throws Exception Exception in case of a problem
+     */
+    @ParameterizedTest
+    @MethodSource("getTestConnections")
+    public void testAppendedUpload(TestConnection testConnection) throws Exception {
+        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Create the entry point directory
+            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            transferDirectory.createDirectory();
+
+            // Define some test data
+            String testData1 = "Hello dear world. How are you today?";
+            String testData2 = "Sad to hear that climate change is killing you!";
+            String testData3 = "I hope we'll be able to fix that for you!";
+
+            // Create a test file
+            SharedFile testFile = transferDirectory.createFileInCurrentDirectory("TestFile");
+            Assertions.assertTrue(testFile.isExisting());
+
+            // Do a first non-appended upload
+            OutputStream outputStream1 = testFile.getOutputStream();
+            outputStream1.write(testData1.getBytes(StandardCharsets.UTF_8));
+            outputStream1.close();
+
+            InputStream inputStream1 = testFile.getInputStream();
+            Assertions.assertEquals(testData1, IOUtils.toString(inputStream1, StandardCharsets.UTF_8));
+
+            // Do a second appended upload
+            OutputStream outputStream2 = testFile.getOutputStream(true);
+            outputStream2.write(testData2.getBytes(StandardCharsets.UTF_8));
+            outputStream2.close();
+
+            InputStream inputStream2 = testFile.getInputStream();
+            Assertions.assertEquals(testData1 + testData2, IOUtils.toString(inputStream2, StandardCharsets.UTF_8));
+
+            // Do a third appended upload
+            OutputStream outputStream3 = testFile.getOutputStream(true);
+            outputStream3.write(testData3.getBytes(StandardCharsets.UTF_8));
+            outputStream3.close();
+
+            InputStream inputStream3 = testFile.getInputStream();
+            Assertions.assertEquals(testData1 + testData2 + testData3, IOUtils.toString(inputStream3, StandardCharsets.UTF_8));
         }
     }
 
