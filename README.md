@@ -97,11 +97,14 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
 try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Share", authenticationContext)) {
     SharedDirectory rootDirectory = new SharedDirectory(sharedConnection);
 
-    // List non-recursive by name
-    List<SharedItem> sharedItems1 = rootDirectory.listFiles("MyFile.txt", false);
+    // List all directories and files of the current directory (Unfiltered, non-recursive)
+    List<SharedItem> sharedItems1 = rootDirectory.listFiles();
 
-    // List recursive by predicate checking
-    List<SharedItem> sharedItems2 = rootDirectory.listFiles(sharedItem -> sharedItem.getName().contains("MyFile.txt"), true);
+    // List by string pattern (java.util.regex.Pattern), non-recursive tree search
+    List<SharedItem> sharedItems2 = rootDirectory.listFiles("MyFile.txt", false);
+
+    // List by predicate, recursive tree search
+    List<SharedItem> sharedItems3 = rootDirectory.listFiles(sharedItem -> sharedItem.getName().contains("MyFile.txt"), true);
 }
 ```
 

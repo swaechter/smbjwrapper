@@ -117,6 +117,15 @@ public final class SharedDirectory extends AbstractSharedItem<SharedDirectory> {
     }
 
     /**
+     * List all files and directories of the current directory. No recursive search or filtering is performed.
+     *
+     * @return Flat list with all files and directories of the current directory
+     */
+    public List<SharedItem> listFiles() {
+        return sortItems(listItems(sharedItem -> true, false));
+    }
+
+    /**
      * List all files and directories that match the search predicate. A recursive search is possible and will result
      * in a flat list with all matching elements.
      *

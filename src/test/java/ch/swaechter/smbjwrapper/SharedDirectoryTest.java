@@ -352,29 +352,47 @@ public class SharedDirectoryTest {
             List<String> files = Arrays.asList("File1", "Dir1/Dir2/File2", "Dir1/Dir2/File1", "Dir4/File3", "Dir5/Dir1/File3");
             files.forEach(path -> new SharedFile(sharedConnection, transferDirectory.getPath() + "/" + path).createFile());
 
+            // Search fot files in the current transfer directory
+            List<SharedItem> sharedItems = transferDirectory.listFiles();
+            Assertions.assertEquals(4, sharedItems.size());
+            Assertions.assertEquals("Dir1", sharedItems.get(0).getName());
+            Assertions.assertEquals("Dir4", sharedItems.get(1).getName());
+            Assertions.assertEquals("Dir5", sharedItems.get(2).getName());
+            Assertions.assertEquals("File1", sharedItems.get(3).getName());
+
             // Search for a few directories
-            List<SharedItem> sharedItems1 = transferDirectory.listFiles("Dir1", false);
-            Assertions.assertEquals(1, sharedItems1.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems1.get(0).getPath());
+            List<SharedItem> sharedItems1a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), false);
+            List<SharedItem> sharedItems1b = transferDirectory.listFiles("Dir1", false);
+            Assertions.assertEquals(1, sharedItems1a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems1a.get(0).getPath());
+            Assertions.assertEquals(sharedItems1a, sharedItems1b);
 
-            List<SharedItem> sharedItems2 = transferDirectory.listFiles("Dir1", true);
-            Assertions.assertEquals(2, sharedItems2.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems2.get(0).getPath());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir5/Dir1", sharedItems2.get(1).getPath());
+            List<SharedItem> sharedItems2a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), true);
+            List<SharedItem> sharedItems2b = transferDirectory.listFiles("Dir1", true);
+            Assertions.assertEquals(2, sharedItems2a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems2a.get(0).getPath());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir5/Dir1", sharedItems2a.get(1).getPath());
+            Assertions.assertEquals(sharedItems2a, sharedItems2b);
 
-            List<SharedItem> sharedItems3 = transferDirectory.listFiles("Dir3", true);
-            Assertions.assertEquals(1, sharedItems3.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/Dir3", sharedItems3.get(0).getPath());
+            List<SharedItem> sharedItems3a = transferDirectory.listFiles(item -> item.getName().contains("Dir3"), true);
+            List<SharedItem> sharedItems3b = transferDirectory.listFiles("Dir3", true);
+            Assertions.assertEquals(1, sharedItems3a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/Dir3", sharedItems3a.get(0).getPath());
+            Assertions.assertEquals(sharedItems3a, sharedItems3b);
 
             // Search for a few files
-            List<SharedItem> sharedItems4 = transferDirectory.listFiles("File1", false);
-            Assertions.assertEquals(1, sharedItems4.size());
-            Assertions.assertEquals("File1", sharedItems4.get(0).getName());
+            List<SharedItem> sharedItems4a = transferDirectory.listFiles(item -> item.getName().contains("File1"), false);
+            List<SharedItem> sharedItems4b = transferDirectory.listFiles("File1", false);
+            Assertions.assertEquals(1, sharedItems4b.size());
+            Assertions.assertEquals("File1", sharedItems4b.get(0).getName());
+            Assertions.assertEquals(sharedItems4a, sharedItems4b);
 
-            List<SharedItem> sharedItems5 = transferDirectory.listFiles("File1", true);
-            Assertions.assertEquals(2, sharedItems5.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", sharedItems5.get(0).getPath());
-            Assertions.assertEquals(transferDirectory.getPath() + "/File1", sharedItems5.get(1).getPath());
+            List<SharedItem> sharedItems5a = transferDirectory.listFiles(item -> item.getName().contains("File1"), true);
+            List<SharedItem> sharedItems5b = transferDirectory.listFiles("File1", true);
+            Assertions.assertEquals(2, sharedItems5a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", sharedItems5a.get(0).getPath());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File1", sharedItems5a.get(1).getPath());
+            Assertions.assertEquals(sharedItems5a, sharedItems5b);
         }
     }
 
