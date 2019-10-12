@@ -115,6 +115,7 @@ try (SharedConnection sharedConnection = new SharedConnection("127.0.0.1", "Shar
     System.out.println("Is existing: " + sharedFile.isExisting());
     System.out.println("Is directory: " + sharedFile.isDirectory());
     System.out.println("Is file: " + sharedFile.isFile());
+    System.out.println("Is hidden: " + sharedFile.isHidden());
     System.out.println("Is root path: " + sharedFile.isRootPath());
     System.out.println("Name: " + sharedFile.getName());
     System.out.println("Server name: " + sharedFile.getServerName());
