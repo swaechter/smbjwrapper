@@ -31,6 +31,19 @@ public interface SharedItem {
     boolean isFile();
 
     /**
+     * Check if the shared item is hidden on an SMB and not Unix level (.file.txt is not a hidden SMB file).
+     * @return Status of the check for all hidden items on an SMB level
+     */
+    /**
+     * Check if the shared item is hodden on an SMB level. Depending on the server configuration, dotted
+     * UNIX files can also be interpreted as hidden files ("hide dot files = no").
+     *
+     * @return Status of the check - depends on the server configuration
+     * @see <a href="https://www.samba.org/samba/docs/current/man-html/smb.conf.5.html">Hide dot files option</a>
+     */
+    boolean isHidden();
+
+    /**
      * Get the server name of the connected server.
      *
      * @return Name of the server

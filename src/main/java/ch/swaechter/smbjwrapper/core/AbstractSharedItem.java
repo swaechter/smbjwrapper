@@ -3,6 +3,7 @@ package ch.swaechter.smbjwrapper.core;
 import ch.swaechter.smbjwrapper.SharedConnection;
 import ch.swaechter.smbjwrapper.utils.ShareUtils;
 import com.hierynomus.msdtyp.FileTime;
+import com.hierynomus.msfscc.FileAttributes;
 import com.hierynomus.msfscc.fileinformation.FileBasicInformation;
 import com.hierynomus.smbj.common.SmbPath;
 import com.hierynomus.smbj.share.DiskShare;
@@ -73,6 +74,14 @@ public abstract class AbstractSharedItem<T extends SharedItem> implements Shared
     @Override
     public boolean isFile() {
         return sharedConnection.getDiskShare().fileExists(pathName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isHidden() {
+        long attributeMask = getDiskShare().getFileInformation(pathName).getBasicInformation().getFileAttributes();
+        return FileAttributes.EnumUtils.isSet(attributeMask, FileAttributes.FILE_ATTRIBUTE_HIDDEN);
     }
 
     /**

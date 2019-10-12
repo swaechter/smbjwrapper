@@ -25,7 +25,34 @@ public class AbstractSharedItemTest {
      */
     @ParameterizedTest
     @MethodSource("getTestConnections")
-    public void testAttributes(TestConnection testConnection) throws Exception {
+    public void testIsHiddenAttribute(TestConnection testConnection) throws Exception {
+        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Create the entry point directory
+            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            transferDirectory.createDirectory();
+
+            // Create a hidden Linux file
+            SharedFile subFile = transferDirectory.createFileInCurrentDirectory(".notahiddenfile.txt");
+            Assertions.assertTrue(subFile.isExisting());
+
+            // Check if the file is hidden. This depends on the SMB server configuration. For more information read the Javadoc & referenced links there.
+            subFile.isHidden();  // Test is a bit useless, so at least prevent crashes
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            Assertions.assertFalse(transferDirectory.isExisting());
+        }
+    }
+
+    /**
+     * Test the file attributes.
+     *
+     * @param testConnection Parameterized test connection data
+     * @throws Exception Exception in case of a problem
+     */
+    @ParameterizedTest
+    @MethodSource("getTestConnections")
+    public void testDateAndSizeAttributes(TestConnection testConnection) throws Exception {
         try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Get the start date and create the entry point directory
             Date startDate = new Date();
@@ -125,6 +152,10 @@ public class AbstractSharedItemTest {
             TestHelpers.isDateBetweenDates(checkDate3, subFile1.getLastAccessTime().toDate(), checkDate4);
             TestHelpers.isDateBetweenDates(checkDate2, subFile1.getLastWriteTime().toDate(), checkDate3);
             TestHelpers.isDateBetweenDates(checkDate2, subFile1.getChangeTime().toDate(), checkDate3);
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            Assertions.assertFalse(transferDirectory.isExisting());
         }
     }
 
