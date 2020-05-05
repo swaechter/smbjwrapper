@@ -25,7 +25,7 @@ Provide a SLF4J logger backend implementation:
 <dependency>
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-simple</artifactId>
-    <version>1.7.25</version>
+    <version>1.7.30</version>
 </dependency>
 ```
 
