@@ -1,8 +1,7 @@
 package ch.swaechter.smbjwrapper;
 
+import ch.swaechter.smbjwrapper.helpers.BaseTest;
 import ch.swaechter.smbjwrapper.helpers.TestConnection;
-import ch.swaechter.smbjwrapper.helpers.TestConnectionFactory;
-import ch.swaechter.smbjwrapper.helpers.TestHelpers;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,9 +12,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.stream.Stream;
 
-public class SharedFileTest {
+public class SmbFileTest extends BaseTest {
 
     /**
      * Test the up- and download including a final delete.
@@ -24,28 +22,28 @@ public class SharedFileTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testUploadAndDownload(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Create the subdirectory and subfiles
-            SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+            SmbDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
 
             // Upload a file
             InputStream inputStream = new FileInputStream(new File("src/test/resources/Screenshot.png"));
             Assertions.assertNotNull(inputStream);
 
-            SharedFile subFile2_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
+            SmbFile subFile2_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
             OutputStream outputStream = subFile2_1.getOutputStream();
             IOUtils.copy(inputStream, outputStream);
             inputStream.close();
             outputStream.close();
 
             // Transfer/download a file
-            SharedFile subFile2_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
+            SmbFile subFile2_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
             inputStream = subFile2_1.getInputStream();
             outputStream = subFile2_2.getOutputStream();
 
@@ -66,11 +64,11 @@ public class SharedFileTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testAppendedUpload(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Define some test data
@@ -79,7 +77,7 @@ public class SharedFileTest {
             String testData3 = "I hope we'll be able to fix that for you!";
 
             // Create a test file
-            SharedFile testFile = transferDirectory.createFileInCurrentDirectory("TestFile");
+            SmbFile testFile = transferDirectory.createFileInCurrentDirectory("TestFile");
             Assertions.assertTrue(testFile.isExisting());
 
             // Do a first non-appended upload
@@ -115,57 +113,53 @@ public class SharedFileTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testRenaming(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Create a first file
-            SharedFile sharedFile1 = transferDirectory.createFileInCurrentDirectory("File1");
-            Assertions.assertTrue(sharedFile1.isExisting());
+            SmbFile smbFile1 = transferDirectory.createFileInCurrentDirectory("File1");
+            Assertions.assertTrue(smbFile1.isExisting());
 
             // Create a second file
-            SharedFile sharedFile2 = transferDirectory.createFileInCurrentDirectory("File2");
-            Assertions.assertTrue(sharedFile2.isExisting());
+            SmbFile smbFile2 = transferDirectory.createFileInCurrentDirectory("File2");
+            Assertions.assertTrue(smbFile2.isExisting());
 
             // Create a first directory
-            SharedDirectory sharedDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory1");
-            Assertions.assertTrue(sharedFile1.isExisting());
+            SmbDirectory smbDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory1");
+            Assertions.assertTrue(smbFile1.isExisting());
 
             // Do a regular rename
-            sharedFile1 = sharedFile1.renameTo("File1New", false);
-            Assertions.assertEquals("File1New", sharedFile1.getName());
-            Assertions.assertEquals(transferDirectory.getPath() + "/File1New", sharedFile1.getPath());
+            smbFile1 = smbFile1.renameTo("File1New", false);
+            Assertions.assertEquals("File1New", smbFile1.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File1New", smbFile1.getPath());
 
             // Do a rename and trigger an exception
             try {
-                sharedFile1 = sharedFile1.renameTo("File2", false);
+                smbFile1 = smbFile1.renameTo("File2", false);
                 Assertions.fail("Rename without replace flag should fail");
             } catch (Exception exception) {
-                Assertions.assertEquals("File1New", sharedFile1.getName());
-                Assertions.assertEquals(transferDirectory.getPath() + "/File1New", sharedFile1.getPath());
+                Assertions.assertEquals("File1New", smbFile1.getName());
+                Assertions.assertEquals(transferDirectory.getPath() + "/File1New", smbFile1.getPath());
             }
 
             // Do a replace rename
-            sharedFile1 = sharedFile1.renameTo("File2", true);
-            Assertions.assertEquals("File2", sharedFile1.getName());
-            Assertions.assertEquals(transferDirectory.getPath() + "/File2", sharedFile1.getPath());
+            smbFile1 = smbFile1.renameTo("File2", true);
+            Assertions.assertEquals("File2", smbFile1.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File2", smbFile1.getPath());
 
             // Do a rename to a directory and trigger an exception
             try {
-                sharedFile1 = sharedFile1.renameTo("Directory1", true);
+                smbFile1 = smbFile1.renameTo("Directory1", true);
                 Assertions.fail("Rename a file to a directory should fail");
             } catch (Exception eception) {
-                Assertions.assertTrue(sharedFile1.isExisting());
-                Assertions.assertEquals("File2", sharedFile1.getName());
-                Assertions.assertTrue(sharedDirectory1.isDirectory());
+                Assertions.assertTrue(smbFile1.isExisting());
+                Assertions.assertEquals("File2", smbFile1.getName());
+                Assertions.assertTrue(smbDirectory1.isDirectory());
             }
         }
-    }
-
-    private static Stream getTestConnections() {
-        return TestConnectionFactory.getTestConnections();
     }
 }

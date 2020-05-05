@@ -1,9 +1,7 @@
 package ch.swaechter.smbjwrapper;
 
-import ch.swaechter.smbjwrapper.core.SharedItem;
+import ch.swaechter.smbjwrapper.helpers.BaseTest;
 import ch.swaechter.smbjwrapper.helpers.TestConnection;
-import ch.swaechter.smbjwrapper.helpers.TestConnectionFactory;
-import ch.swaechter.smbjwrapper.helpers.TestHelpers;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,9 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
-public class SharedDirectoryTest {
+public class SmbDirectoryTest extends BaseTest {
 
     /**
      * Test all root directories and file including their attribute methods.
@@ -26,11 +23,11 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testRootPaths(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
-            // Create a root share directory
-            SharedDirectory rootDirectory1 = new SharedDirectory(sharedConnection);
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Create a root directory
+            SmbDirectory rootDirectory1 = new SmbDirectory(smbConnection);
             Assertions.assertTrue(rootDirectory1.isExisting());
             Assertions.assertTrue(rootDirectory1.isDirectory());
             Assertions.assertFalse(rootDirectory1.isFile());
@@ -43,8 +40,8 @@ public class SharedDirectoryTest {
             Assertions.assertEquals(rootDirectory1, rootDirectory1.getRootPath());
             Assertions.assertTrue(rootDirectory1.isRootPath());
 
-            // Create a root share directory
-            SharedDirectory rootDirectory2 = new SharedDirectory(sharedConnection, "");
+            // Create a root directory
+            SmbDirectory rootDirectory2 = new SmbDirectory(smbConnection, "");
             Assertions.assertTrue(rootDirectory2.isExisting());
             Assertions.assertTrue(rootDirectory2.isDirectory());
             Assertions.assertFalse(rootDirectory2.isFile());
@@ -57,8 +54,8 @@ public class SharedDirectoryTest {
             Assertions.assertEquals(rootDirectory2, rootDirectory2.getRootPath());
             Assertions.assertTrue(rootDirectory2.isRootPath());
 
-            // Create a root share file
-            SharedFile rootFile1 = new SharedFile(sharedConnection, "File1.txt");
+            // Create a root file
+            SmbFile rootFile1 = new SmbFile(smbConnection, "File1.txt");
             Assertions.assertFalse(rootFile1.isExisting());
             Assertions.assertFalse(rootFile1.isDirectory());
             Assertions.assertFalse(rootFile1.isFile());
@@ -71,10 +68,10 @@ public class SharedDirectoryTest {
             Assertions.assertEquals(rootDirectory1, rootFile1.getRootPath());
             Assertions.assertTrue(rootFile1.isRootPath());
 
-            // Create a root share file
-            SharedFile rootFile2 = new SharedFile(sharedConnection, "File1.txt");
+            // Create a root file
+            SmbFile rootFile2 = new SmbFile(smbConnection, "File1.txt");
 
-            // Compare all root share directories and files
+            // Compare all root directories and files
             Assertions.assertEquals(rootDirectory1, rootDirectory2);
             Assertions.assertNotEquals(rootDirectory1, rootFile1);
             Assertions.assertEquals(rootFile1, rootFile2);
@@ -89,11 +86,11 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testRecreation(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
 
             // Repeat the creation/deletion multiple times
             for (int i = 0; i < 5; i++) {
@@ -101,19 +98,19 @@ public class SharedDirectoryTest {
                 Assertions.assertFalse(transferDirectory.isExisting());
                 transferDirectory.createDirectory();
                 Assertions.assertTrue(transferDirectory.isExisting());
-                SharedDirectory shareDirectory = transferDirectory.getParentPath();
-                Assertions.assertEquals(shareDirectory.getRootPath().getPath(), shareDirectory.getPath());
-                Assertions.assertEquals("", shareDirectory.getName());
-                Assertions.assertTrue(shareDirectory.isRootPath());
+                SmbDirectory smbDirectory = transferDirectory.getParentPath();
+                Assertions.assertEquals(smbDirectory.getRootPath().getPath(), smbDirectory.getPath());
+                Assertions.assertEquals("", smbDirectory.getName());
+                Assertions.assertTrue(smbDirectory.isRootPath());
 
                 // Create a root file
-                SharedFile transferFile = new SharedFile(sharedConnection, "Text_" + TestHelpers.buildUniquePath() + ".txt");
+                SmbFile transferFile = new SmbFile(smbConnection, "Text_" + buildUniquePath() + ".txt");
                 transferFile.createFile();
                 Assertions.assertTrue(transferFile.isExisting());
-                shareDirectory = transferFile.getParentPath();
-                Assertions.assertEquals(shareDirectory.getRootPath().getPath(), shareDirectory.getPath());
-                Assertions.assertEquals("", shareDirectory.getName());
-                Assertions.assertTrue(shareDirectory.isRootPath());
+                smbDirectory = transferFile.getParentPath();
+                Assertions.assertEquals(smbDirectory.getRootPath().getPath(), smbDirectory.getPath());
+                Assertions.assertEquals("", smbDirectory.getName());
+                Assertions.assertTrue(smbDirectory.isRootPath());
 
                 // Recreate the file
                 transferFile.deleteFile();
@@ -121,29 +118,29 @@ public class SharedDirectoryTest {
                 transferFile.createFile();
                 Assertions.assertTrue(transferFile.isExisting());
 
-                // Check the share root
-                SharedDirectory rootDirectory = new SharedDirectory(sharedConnection);
+                // Check the root directories and files
+                SmbDirectory rootDirectory = new SmbDirectory(smbConnection);
                 Assertions.assertTrue(!rootDirectory.getDirectories().isEmpty());
                 Assertions.assertTrue(!rootDirectory.getFiles().isEmpty());
 
                 // Create a sub directory
-                SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+                SmbDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
                 Assertions.assertTrue(subDirectory1.isExisting());
-                SharedDirectory rootDirectory2 = subDirectory1.getParentPath();
+                SmbDirectory rootDirectory2 = subDirectory1.getParentPath();
                 Assertions.assertEquals(transferDirectory.getPath(), rootDirectory2.getPath());
 
                 // Create a sub directory
-                SharedDirectory subDirectory2 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory2");
+                SmbDirectory subDirectory2 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory2");
                 Assertions.assertTrue(subDirectory2.isExisting());
 
                 // Create a sub file in the sub directory
-                SharedFile subFile1_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
+                SmbFile subFile1_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
                 Assertions.assertTrue(subFile1_1.isExisting());
-                SharedDirectory rootDirectory3 = subFile1_1.getParentPath();
+                SmbDirectory rootDirectory3 = subFile1_1.getParentPath();
                 Assertions.assertEquals(subDirectory1.getPath(), rootDirectory3.getPath());
 
                 // Create a sub file in the sub directory
-                SharedFile subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
+                SmbFile subFile1_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
                 Assertions.assertTrue(subFile1_2.isExisting());
 
                 // Check the sub items
@@ -165,33 +162,33 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testGetDirectoriesAndFiles(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Create the subdirectory and subfiles
-            SharedDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
-            SharedFile subFile1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
-            SharedFile subFile2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
+            SmbDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
+            SmbFile subFile1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
+            SmbFile subFile2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
             Assertions.assertTrue(subDirectory1.isExisting());
             Assertions.assertTrue(subFile1.isExisting());
             Assertions.assertTrue(subFile2.isExisting());
 
             // Show all directories
-            for (SharedDirectory sharedDirectory : transferDirectory.getDirectories()) {
-                String fileName = sharedDirectory.getName();
+            for (SmbDirectory smbDirectory : transferDirectory.getDirectories()) {
+                String fileName = smbDirectory.getName();
                 Assertions.assertEquals(fileName, subDirectory1.getName());
-                Assertions.assertTrue(sharedDirectory.isExisting());
+                Assertions.assertTrue(smbDirectory.isExisting());
             }
 
             // Show all files
-            for (SharedFile sharedFile : subDirectory1.getFiles()) {
-                String fileName = sharedFile.getName();
+            for (SmbFile smbFile : subDirectory1.getFiles()) {
+                String fileName = smbFile.getName();
                 Assertions.assertTrue(fileName.equals(subFile1.getName()) || fileName.equals(subFile2.getName()));
-                Assertions.assertTrue(sharedFile.isExisting());
+                Assertions.assertTrue(smbFile.isExisting());
             }
         }
     }
@@ -203,11 +200,11 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testRemoteServerCopy(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Create a temporary file
@@ -216,7 +213,7 @@ public class SharedDirectoryTest {
             Assertions.assertTrue(tempFile.exists());
 
             // Create the source file
-            SharedFile sourceFile = transferDirectory.createFileInCurrentDirectory("ScreenshotIn.png");
+            SmbFile sourceFile = transferDirectory.createFileInCurrentDirectory("ScreenshotIn.png");
             Assertions.assertTrue(sourceFile.isExisting());
 
             // Upload a file
@@ -228,7 +225,7 @@ public class SharedDirectoryTest {
 
             // Copy the file via server side copy
             String path = sourceFile.getParentPath().getPath();
-            SharedFile destinationFile = new SharedFile(sharedConnection, path + "/ScreenshotOut.png");
+            SmbFile destinationFile = new SmbFile(smbConnection, path + "/ScreenshotOut.png");
             sourceFile.copyFileViaServerSideCopy(destinationFile);
             Assertions.assertTrue(destinationFile.isExisting());
             Assertions.assertEquals(sourceFile.getFileSize(), destinationFile.getFileSize());
@@ -242,15 +239,15 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testEnsureDirectory(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Ensure the directory existence
-            SharedDirectory ensureDirectory1 = new SharedDirectory(sharedConnection, transferDirectory.getPath() + "/EnsureDirectory1");
+            SmbDirectory ensureDirectory1 = new SmbDirectory(smbConnection, transferDirectory.getPath() + "/EnsureDirectory1");
             Assertions.assertFalse(ensureDirectory1.isExisting());
             ensureDirectory1.ensureExists();
             Assertions.assertTrue(ensureDirectory1.isExisting());
@@ -260,11 +257,11 @@ public class SharedDirectoryTest {
 
             // Ensure a non-recoverable directory existence
             try {
-                SharedFile ensureFile1 = transferDirectory.createFileInCurrentDirectory("EnsureDirectory2");
+                SmbFile ensureFile1 = transferDirectory.createFileInCurrentDirectory("EnsureDirectory2");
                 Assertions.assertTrue(ensureFile1.isExisting());
                 Assertions.assertTrue(ensureFile1.isFile());
 
-                SharedDirectory ensureDirectory2 = new SharedDirectory(sharedConnection, transferDirectory.getPath() + "/EnsureDirectory2");
+                SmbDirectory ensureDirectory2 = new SmbDirectory(smbConnection, transferDirectory.getPath() + "/EnsureDirectory2");
                 ensureDirectory2.ensureExists();
                 Assertions.fail("Ensure exception not failed");
             } catch (IllegalStateException exception) {
@@ -280,52 +277,52 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testRenaming(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Create a first directory
-            SharedDirectory sharedDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory1");
-            Assertions.assertTrue(sharedDirectory1.isExisting());
+            SmbDirectory smbDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory1");
+            Assertions.assertTrue(smbDirectory1.isExisting());
 
             // Create a second directory
-            SharedDirectory sharedDirectory2 = transferDirectory.createDirectoryInCurrentDirectory("Directory2");
-            Assertions.assertTrue(sharedDirectory2.isExisting());
+            SmbDirectory smbDirectory2 = transferDirectory.createDirectoryInCurrentDirectory("Directory2");
+            Assertions.assertTrue(smbDirectory2.isExisting());
 
             // Create a first file
-            SharedFile sharedFile1 = transferDirectory.createFileInCurrentDirectory("File1");
-            Assertions.assertTrue(sharedFile1.isExisting());
+            SmbFile smbFile1 = transferDirectory.createFileInCurrentDirectory("File1");
+            Assertions.assertTrue(smbFile1.isExisting());
 
             // Do a regular rename
-            sharedDirectory1 = sharedDirectory1.renameTo("Directory1New", false);
-            Assertions.assertEquals("Directory1New", sharedDirectory1.getName());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", sharedDirectory1.getPath());
+            smbDirectory1 = smbDirectory1.renameTo("Directory1New", false);
+            Assertions.assertEquals("Directory1New", smbDirectory1.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", smbDirectory1.getPath());
 
             // Do a rename and trigger an exception
             try {
-                sharedDirectory1 = sharedDirectory1.renameTo("Directory2", false);
+                smbDirectory1 = smbDirectory1.renameTo("Directory2", false);
                 Assertions.fail("Rename without replace flag should fail");
             } catch (Exception exception) {
-                Assertions.assertEquals("Directory1New", sharedDirectory1.getName());
-                Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", sharedDirectory1.getPath());
+                Assertions.assertEquals("Directory1New", smbDirectory1.getName());
+                Assertions.assertEquals(transferDirectory.getPath() + "/Directory1New", smbDirectory1.getPath());
             }
 
             // Do a replace rename
-            sharedDirectory1 = sharedDirectory1.renameTo("Directory2", true);
-            Assertions.assertEquals("Directory2", sharedDirectory1.getName());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Directory2", sharedDirectory1.getPath());
+            smbDirectory1 = smbDirectory1.renameTo("Directory2", true);
+            Assertions.assertEquals("Directory2", smbDirectory1.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Directory2", smbDirectory1.getPath());
 
             // Do a rename to a file and trigger an exception
             try {
-                sharedDirectory1 = sharedDirectory1.renameTo("File1", true);
+                smbDirectory1 = smbDirectory1.renameTo("File1", true);
                 Assertions.fail("Rename a directory to a file should fail");
             } catch (Exception eception) {
-                Assertions.assertTrue(sharedDirectory1.isExisting());
-                Assertions.assertEquals("Directory2", sharedDirectory1.getName());
-                Assertions.assertTrue(sharedFile1.isFile());
+                Assertions.assertTrue(smbDirectory1.isExisting());
+                Assertions.assertEquals("Directory2", smbDirectory1.getName());
+                Assertions.assertTrue(smbFile1.isFile());
             }
         }
     }
@@ -337,66 +334,62 @@ public class SharedDirectoryTest {
      * @throws Exception Exception in case of a problem
      */
     @ParameterizedTest
-    @MethodSource("getTestConnections")
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
     public void testList(TestConnection testConnection) throws Exception {
-        try (SharedConnection sharedConnection = new SharedConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
-            SharedDirectory transferDirectory = new SharedDirectory(sharedConnection, TestHelpers.buildUniquePath());
+            SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
 
             // Create the directories
             List<String> directories = Arrays.asList("Dir1", "Dir1/Dir2", "Dir1/Dir2/Dir3", "Dir4", "Dir5", "Dir5/Dir1");
-            directories.forEach(path -> new SharedDirectory(sharedConnection, transferDirectory.getPath() + "/" + path).createDirectory());
+            directories.forEach(path -> new SmbDirectory(smbConnection, transferDirectory.getPath() + "/" + path).createDirectory());
 
             // Create the files
             List<String> files = Arrays.asList("File1", "Dir1/Dir2/File2", "Dir1/Dir2/File1", "Dir4/File3", "Dir5/Dir1/File3");
-            files.forEach(path -> new SharedFile(sharedConnection, transferDirectory.getPath() + "/" + path).createFile());
+            files.forEach(path -> new SmbFile(smbConnection, transferDirectory.getPath() + "/" + path).createFile());
 
             // Search fot files in the current transfer directory
-            List<SharedItem> sharedItems = transferDirectory.listFiles();
-            Assertions.assertEquals(4, sharedItems.size());
-            Assertions.assertEquals("Dir1", sharedItems.get(0).getName());
-            Assertions.assertEquals("Dir4", sharedItems.get(1).getName());
-            Assertions.assertEquals("Dir5", sharedItems.get(2).getName());
-            Assertions.assertEquals("File1", sharedItems.get(3).getName());
+            List<SmbItem> smbItems = transferDirectory.listFiles();
+            Assertions.assertEquals(4, smbItems.size());
+            Assertions.assertEquals("Dir1", smbItems.get(0).getName());
+            Assertions.assertEquals("Dir4", smbItems.get(1).getName());
+            Assertions.assertEquals("Dir5", smbItems.get(2).getName());
+            Assertions.assertEquals("File1", smbItems.get(3).getName());
 
             // Search for a few directories
-            List<SharedItem> sharedItems1a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), false);
-            List<SharedItem> sharedItems1b = transferDirectory.listFiles("Dir1", false);
-            Assertions.assertEquals(1, sharedItems1a.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems1a.get(0).getPath());
-            Assertions.assertEquals(sharedItems1a, sharedItems1b);
+            List<SmbItem> smbItems1a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), false);
+            List<SmbItem> smbItems1b = transferDirectory.listFiles("Dir1", false);
+            Assertions.assertEquals(1, smbItems1a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", smbItems1a.get(0).getPath());
+            Assertions.assertEquals(smbItems1a, smbItems1b);
 
-            List<SharedItem> sharedItems2a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), true);
-            List<SharedItem> sharedItems2b = transferDirectory.listFiles("Dir1", true);
-            Assertions.assertEquals(2, sharedItems2a.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", sharedItems2a.get(0).getPath());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir5/Dir1", sharedItems2a.get(1).getPath());
-            Assertions.assertEquals(sharedItems2a, sharedItems2b);
+            List<SmbItem> smbItems2a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), true);
+            List<SmbItem> smbItems2b = transferDirectory.listFiles("Dir1", true);
+            Assertions.assertEquals(2, smbItems2a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", smbItems2a.get(0).getPath());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir5/Dir1", smbItems2a.get(1).getPath());
+            Assertions.assertEquals(smbItems2a, smbItems2b);
 
-            List<SharedItem> sharedItems3a = transferDirectory.listFiles(item -> item.getName().contains("Dir3"), true);
-            List<SharedItem> sharedItems3b = transferDirectory.listFiles("Dir3", true);
-            Assertions.assertEquals(1, sharedItems3a.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/Dir3", sharedItems3a.get(0).getPath());
-            Assertions.assertEquals(sharedItems3a, sharedItems3b);
+            List<SmbItem> smbItems3a = transferDirectory.listFiles(item -> item.getName().contains("Dir3"), true);
+            List<SmbItem> smbItems3b = transferDirectory.listFiles("Dir3", true);
+            Assertions.assertEquals(1, smbItems3a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/Dir3", smbItems3a.get(0).getPath());
+            Assertions.assertEquals(smbItems3a, smbItems3b);
 
             // Search for a few files
-            List<SharedItem> sharedItems4a = transferDirectory.listFiles(item -> item.getName().contains("File1"), false);
-            List<SharedItem> sharedItems4b = transferDirectory.listFiles("File1", false);
-            Assertions.assertEquals(1, sharedItems4b.size());
-            Assertions.assertEquals("File1", sharedItems4b.get(0).getName());
-            Assertions.assertEquals(sharedItems4a, sharedItems4b);
+            List<SmbItem> smbItems4a = transferDirectory.listFiles(item -> item.getName().contains("File1"), false);
+            List<SmbItem> smbItems4b = transferDirectory.listFiles("File1", false);
+            Assertions.assertEquals(1, smbItems4b.size());
+            Assertions.assertEquals("File1", smbItems4b.get(0).getName());
+            Assertions.assertEquals(smbItems4a, smbItems4b);
 
-            List<SharedItem> sharedItems5a = transferDirectory.listFiles(item -> item.getName().contains("File1"), true);
-            List<SharedItem> sharedItems5b = transferDirectory.listFiles("File1", true);
-            Assertions.assertEquals(2, sharedItems5a.size());
-            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", sharedItems5a.get(0).getPath());
-            Assertions.assertEquals(transferDirectory.getPath() + "/File1", sharedItems5a.get(1).getPath());
-            Assertions.assertEquals(sharedItems5a, sharedItems5b);
+            List<SmbItem> smbItems5a = transferDirectory.listFiles(item -> item.getName().contains("File1"), true);
+            List<SmbItem> smbItems5b = transferDirectory.listFiles("File1", true);
+            Assertions.assertEquals(2, smbItems5a.size());
+            Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", smbItems5a.get(0).getPath());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File1", smbItems5a.get(1).getPath());
+            Assertions.assertEquals(smbItems5a, smbItems5b);
         }
-    }
-
-    private static Stream getTestConnections() {
-        return TestConnectionFactory.getTestConnections();
     }
 }

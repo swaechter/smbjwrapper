@@ -10,7 +10,7 @@ import java.io.OutputStream;
  *
  * @author Simon Wächter
  */
-public class SharedOutputStream extends OutputStream {
+public class SmbOutputStream extends OutputStream {
 
     /**
      * File that provides the output stream.
@@ -26,9 +26,10 @@ public class SharedOutputStream extends OutputStream {
      * Create a new decorated output stream that respects the reference counting close mechanism of the file. It's possible to append or
      * overwrite existing content.
      *
-     * @param file File that will provide the output stream
+     * @param file          File that will provide the output stream
+     * @param appendContent Append the content to the current file or overwrite it
      */
-    public SharedOutputStream(File file, boolean appendContent) {
+    public SmbOutputStream(File file, boolean appendContent) {
         this.file = file;
         this.outputStream = file.getOutputStream(appendContent);
     }
