@@ -100,7 +100,7 @@ public final class SmbDirectory extends SmbItem {
      * @return List with all directories
      */
     public List<SmbDirectory> getDirectories() {
-        List<SmbItem> smbItems = sortItems(listItems(SmbItem::isDirectory, false));
+        List<SmbItem> smbItems = sortItems(internallyListItems(SmbItem::isDirectory, false));
         return smbItems.stream().map(item -> (SmbDirectory) item).collect(Collectors.toList());
     }
 
@@ -110,7 +110,7 @@ public final class SmbDirectory extends SmbItem {
      * @return List with all files
      */
     public List<SmbFile> getFiles() {
-        List<SmbItem> smbItems = sortItems(listItems(SmbItem::isFile, false));
+        List<SmbItem> smbItems = sortItems(internallyListItems(SmbItem::isFile, false));
         return smbItems.stream().map(item -> (SmbFile) item).collect(Collectors.toList());
     }
 
@@ -119,8 +119,8 @@ public final class SmbDirectory extends SmbItem {
      *
      * @return Flat list with all files and directories of the current directory
      */
-    public List<SmbItem> listFiles() {
-        return sortItems(listItems(smbItem -> true, false));
+    public List<SmbItem> listItems() {
+        return sortItems(internallyListItems(smbItem -> true, false));
     }
 
     /**
@@ -131,8 +131,8 @@ public final class SmbDirectory extends SmbItem {
      * @param searchRecursive Flag to search recursive
      * @return Flat list with all matching files and directories
      */
-    public List<SmbItem> listFiles(Predicate<SmbItem> searchPredicate, boolean searchRecursive) {
-        return sortItems(listItems(searchPredicate, searchRecursive));
+    public List<SmbItem> listItems(Predicate<SmbItem> searchPredicate, boolean searchRecursive) {
+        return sortItems(internallyListItems(searchPredicate, searchRecursive));
     }
 
     /**
@@ -143,9 +143,9 @@ public final class SmbDirectory extends SmbItem {
      * @param searchRecursive Flag to search recursive
      * @return Flat list with all matching files and directories
      */
-    public List<SmbItem> listFiles(String searchPattern, boolean searchRecursive) {
+    public List<SmbItem> listItems(String searchPattern, boolean searchRecursive) {
         Pattern pattern = Pattern.compile(searchPattern);
-        return sortItems(listItems((smbItem -> pattern.matcher(smbItem.getName()).matches()), searchRecursive));
+        return sortItems(internallyListItems((smbItem -> pattern.matcher(smbItem.getName()).matches()), searchRecursive));
     }
 
     /**
@@ -183,7 +183,7 @@ public final class SmbDirectory extends SmbItem {
      * @param searchRecursive Flag to search recursive
      * @return Flat list with all matching share items
      */
-    private List<SmbItem> listItems(Predicate<SmbItem> searchPredicate, boolean searchRecursive) {
+    private List<SmbItem> internallyListItems(Predicate<SmbItem> searchPredicate, boolean searchRecursive) {
         String smbDirectoryPath = getPath();
         List<SmbItem> smbItems = new LinkedList<>();
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getDiskShare().list(smbDirectoryPath)) {
@@ -195,7 +195,7 @@ public final class SmbDirectory extends SmbItem {
                     SmbDirectory smbDirectory = new SmbDirectory(getSmbConnection(), filePath);
                     filterItem(smbItems, smbDirectory, searchPredicate);
                     if (searchRecursive) {
-                        smbItems.addAll(smbDirectory.listFiles(searchPredicate, true));
+                        smbItems.addAll(smbDirectory.listItems(searchPredicate, true));
                     }
                 } else {
                     SmbFile smbFile = new SmbFile(getSmbConnection(), filePath);

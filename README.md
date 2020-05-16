@@ -98,13 +98,13 @@ try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authe
     SmbDirectory rootDirectory = new SmbDirectory(smbConnection);
 
     // List all directories and files of the current directory (Unfiltered, non-recursive)
-    List<SmbItem> smbItems1 = rootDirectory.listFiles();
+    List<SmbItem> smbItems1 = rootDirectory.listItems();
 
     // List by string pattern (java.util.regex.Pattern), non-recursive tree search
-    List<SmbItem> smbItems2 = rootDirectory.listFiles("MyFile.txt", false);
+    List<SmbItem> smbItems2 = rootDirectory.listItems("MyFile.txt", false);
 
     // List by predicate, recursive tree search
-    List<SmbItem> smbItems3 = rootDirectory.listFiles(smbItem -> smbItem.getName().contains("MyFile.txt"), true);
+    List<SmbItem> smbItems3 = rootDirectory.listItems(smbItem -> smbItem.getName().contains("MyFile.txt"), true);
 }
 ```
 

@@ -350,7 +350,7 @@ public class SmbDirectoryTest extends BaseTest {
             files.forEach(path -> new SmbFile(smbConnection, transferDirectory.getPath() + "/" + path).createFile());
 
             // Search fot files in the current transfer directory
-            List<SmbItem> smbItems = transferDirectory.listFiles();
+            List<SmbItem> smbItems = transferDirectory.listItems();
             Assertions.assertEquals(4, smbItems.size());
             Assertions.assertEquals("Dir1", smbItems.get(0).getName());
             Assertions.assertEquals("Dir4", smbItems.get(1).getName());
@@ -358,34 +358,34 @@ public class SmbDirectoryTest extends BaseTest {
             Assertions.assertEquals("File1", smbItems.get(3).getName());
 
             // Search for a few directories
-            List<SmbItem> smbItems1a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), false);
-            List<SmbItem> smbItems1b = transferDirectory.listFiles("Dir1", false);
+            List<SmbItem> smbItems1a = transferDirectory.listItems(item -> item.getName().contains("Dir1"), false);
+            List<SmbItem> smbItems1b = transferDirectory.listItems("Dir1", false);
             Assertions.assertEquals(1, smbItems1a.size());
             Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", smbItems1a.get(0).getPath());
             Assertions.assertEquals(smbItems1a, smbItems1b);
 
-            List<SmbItem> smbItems2a = transferDirectory.listFiles(item -> item.getName().contains("Dir1"), true);
-            List<SmbItem> smbItems2b = transferDirectory.listFiles("Dir1", true);
+            List<SmbItem> smbItems2a = transferDirectory.listItems(item -> item.getName().contains("Dir1"), true);
+            List<SmbItem> smbItems2b = transferDirectory.listItems("Dir1", true);
             Assertions.assertEquals(2, smbItems2a.size());
             Assertions.assertEquals(transferDirectory.getPath() + "/Dir1", smbItems2a.get(0).getPath());
             Assertions.assertEquals(transferDirectory.getPath() + "/Dir5/Dir1", smbItems2a.get(1).getPath());
             Assertions.assertEquals(smbItems2a, smbItems2b);
 
-            List<SmbItem> smbItems3a = transferDirectory.listFiles(item -> item.getName().contains("Dir3"), true);
-            List<SmbItem> smbItems3b = transferDirectory.listFiles("Dir3", true);
+            List<SmbItem> smbItems3a = transferDirectory.listItems(item -> item.getName().contains("Dir3"), true);
+            List<SmbItem> smbItems3b = transferDirectory.listItems("Dir3", true);
             Assertions.assertEquals(1, smbItems3a.size());
             Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/Dir3", smbItems3a.get(0).getPath());
             Assertions.assertEquals(smbItems3a, smbItems3b);
 
             // Search for a few files
-            List<SmbItem> smbItems4a = transferDirectory.listFiles(item -> item.getName().contains("File1"), false);
-            List<SmbItem> smbItems4b = transferDirectory.listFiles("File1", false);
+            List<SmbItem> smbItems4a = transferDirectory.listItems(item -> item.getName().contains("File1"), false);
+            List<SmbItem> smbItems4b = transferDirectory.listItems("File1", false);
             Assertions.assertEquals(1, smbItems4b.size());
             Assertions.assertEquals("File1", smbItems4b.get(0).getName());
             Assertions.assertEquals(smbItems4a, smbItems4b);
 
-            List<SmbItem> smbItems5a = transferDirectory.listFiles(item -> item.getName().contains("File1"), true);
-            List<SmbItem> smbItems5b = transferDirectory.listFiles("File1", true);
+            List<SmbItem> smbItems5a = transferDirectory.listItems(item -> item.getName().contains("File1"), true);
+            List<SmbItem> smbItems5b = transferDirectory.listItems("File1", true);
             Assertions.assertEquals(2, smbItems5a.size());
             Assertions.assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", smbItems5a.get(0).getPath());
             Assertions.assertEquals(transferDirectory.getPath() + "/File1", smbItems5a.get(1).getPath());
