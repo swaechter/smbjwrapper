@@ -9,16 +9,11 @@ import com.hierynomus.smbj.share.DiskShare;
 import java.io.IOException;
 
 /**
- * This class is responsible for managing the connection and session.
+ * This class is responsible for managing the SMB connection and session.
  *
  * @author Simon Wächter
  */
-public class SharedConnection implements AutoCloseable {
-
-    /**
-     * SMB client that provides the connection pool.
-     */
-    private final SMBClient smbClient;
+public class SmbConnection implements AutoCloseable {
 
     /**
      * New or reused connection.
@@ -26,7 +21,7 @@ public class SharedConnection implements AutoCloseable {
     private final Connection connection;
 
     /**
-     * Disk share for the share access.
+     * Disk share for the SMB access.
      */
     private final DiskShare diskShare;
 
@@ -41,19 +36,19 @@ public class SharedConnection implements AutoCloseable {
     private final String shareName;
 
     /**
-     * Create a new connection to the server. Be aware, that the shared connection itself is not thread safe.
+     * Create a new SMB connection to the server. Be aware, that the connection itself is not thread safe.
      *
      * @param serverName            Server name of the server
      * @param shareName             Share name of the server
      * @param authenticationContext Authentication used to authenticate against
      * @throws IOException Exception in case of a problem
      */
-    public SharedConnection(String serverName, String shareName, AuthenticationContext authenticationContext) throws IOException {
+    public SmbConnection(String serverName, String shareName, AuthenticationContext authenticationContext) throws IOException {
         this(serverName, shareName, authenticationContext, SmbConfig.builder().build());
     }
 
     /**
-     * Create a new connection to the server with a custom SMB client configuration. Be aware, that the shared connection itself is not thread safe.
+     * Create a new SMB connection to the server with a custom SMB client configuration. Be aware, that the connection itself is not thread safe.
      *
      * @param serverName            Server name of the server
      * @param shareName             Share name of the server
@@ -61,8 +56,8 @@ public class SharedConnection implements AutoCloseable {
      * @param smbConfig             Custom SMB configuration
      * @throws IOException Exception in case of a problem
      */
-    public SharedConnection(String serverName, String shareName, AuthenticationContext authenticationContext, SmbConfig smbConfig) throws IOException {
-        this.smbClient = new SMBClient(smbConfig);
+    public SmbConnection(String serverName, String shareName, AuthenticationContext authenticationContext, SmbConfig smbConfig) throws IOException {
+        SMBClient smbClient = new SMBClient(smbConfig);
         this.connection = smbClient.connect(serverName);
         this.diskShare = (DiskShare) connection.authenticate(authenticationContext).connectShare(shareName);
         this.serverName = serverName;

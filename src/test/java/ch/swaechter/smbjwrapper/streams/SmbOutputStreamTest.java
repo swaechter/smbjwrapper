@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author Simon Wächter
  */
-public class SharedOutputStreamTest {
+public class SmbOutputStreamTest {
 
     /**
      * Test the output stream decorator including all required method invocations.
@@ -23,7 +23,7 @@ public class SharedOutputStreamTest {
      * @throws IOException Exception in case of a problem
      */
     @Test
-    public void testSharedOutputStream() throws IOException {
+    public void testSmbOutputStream() throws IOException {
         // Create a spy output stream object
         String testData = "Hello";
         ByteArrayOutputStream outputStream = Mockito.spy(new ByteArrayOutputStream(testData.getBytes().length));
@@ -33,9 +33,9 @@ public class SharedOutputStreamTest {
         Mockito.when(file.getOutputStream(false)).thenReturn(outputStream);
 
         // Write the string
-        SharedOutputStream sharedOutputStream = new SharedOutputStream(file, false);
-        IOUtils.write(testData, sharedOutputStream, StandardCharsets.UTF_8);
-        sharedOutputStream.close();
+        SmbOutputStream smbOutputStream = new SmbOutputStream(file, false);
+        IOUtils.write(testData, smbOutputStream, StandardCharsets.UTF_8);
+        smbOutputStream.close();
 
         // Test the data and method invocations
         Assertions.assertEquals(testData, new String(outputStream.toByteArray()));

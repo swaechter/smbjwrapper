@@ -10,7 +10,7 @@ import java.io.InputStream;
  *
  * @author Simon Wächter
  */
-public class SharedInputStream extends InputStream {
+public class SmbInputStream extends InputStream {
 
     /**
      * File that provides the input stream.
@@ -23,11 +23,11 @@ public class SharedInputStream extends InputStream {
     private final InputStream inputStream;
 
     /**
-     * Create a new decorated input stream that respects the reference couting close mechanism of the file.
+     * Create a new decorated input stream that respects the reference counting close mechanism of the file.
      *
      * @param file File that will provide the input stream
      */
-    public SharedInputStream(File file) {
+    public SmbInputStream(File file) {
         this.file = file;
         this.inputStream = file.getInputStream();
     }

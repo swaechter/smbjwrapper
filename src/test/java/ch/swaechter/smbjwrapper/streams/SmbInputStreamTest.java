@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author Simon Wächter
  */
-public class SharedInputStreamTest {
+public class SmbInputStreamTest {
 
     /**
      * Test the input stream decorator including all required method invocations.
@@ -23,7 +23,7 @@ public class SharedInputStreamTest {
      * @throws IOException Exception in case of a problem
      */
     @Test
-    public void testSharedInputStream() throws IOException {
+    public void testSmbInputStream() throws IOException {
         // Create a spy input stream object
         String testData = "Hello";
         ByteArrayInputStream inputStream = Mockito.spy(new ByteArrayInputStream(testData.getBytes(StandardCharsets.UTF_8)));
@@ -34,9 +34,9 @@ public class SharedInputStreamTest {
 
         // Read the string
         byte[] testBuffer = new byte[testData.getBytes().length];
-        SharedInputStream sharedInputStream = new SharedInputStream(file);
-        IOUtils.read(sharedInputStream, testBuffer);
-        sharedInputStream.close();
+        SmbInputStream smbInputStream = new SmbInputStream(file);
+        IOUtils.read(smbInputStream, testBuffer);
+        smbInputStream.close();
 
         // Test the data and method invocations
         Assertions.assertEquals(testData, new String(testBuffer));

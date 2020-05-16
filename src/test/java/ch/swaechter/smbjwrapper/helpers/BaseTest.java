@@ -1,11 +1,19 @@
 package ch.swaechter.smbjwrapper.helpers;
 
+import com.hierynomus.smbj.auth.AuthenticationContext;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.Date;
 import java.util.UUID;
+import java.util.stream.Stream;
 
-public class TestHelpers {
+public abstract class BaseTest {
+
+    public static Stream<TestConnection> getTestConnections() {
+        return Stream.of(
+            new TestConnection("127.0.0.1", "Share", new AuthenticationContext("user", "123456aA".toCharArray(), ""))
+        );
+    }
 
     public static String buildUniquePath() {
         return "Transfer_" + UUID.randomUUID();
