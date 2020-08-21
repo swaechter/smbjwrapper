@@ -113,7 +113,7 @@ public class SmbConnection implements AutoCloseable {
             try {
                 ensureConnectionIsAlive();
             } catch (IOException exception) {
-                throw new RuntimeException("Unable to initialize the delayed connection", exception);
+                throw new RuntimeException("Unable to initialize the delayed connection: " + exception.getMessage(), exception);
             }
         }
 
