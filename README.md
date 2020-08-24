@@ -5,7 +5,8 @@
 This project provides an object & hierarchy based wrapper API for the smbj project (https://github.com/hierynomus/smbj). It serves as a replacement for the aging and insecure JCIFS project.
 
 ## Foreword
-In the open source world it is hard to get to know your users and their use cases & needs. In case you are using this library and enjoy it (or had problems), feel free to send me a mail (waechter.simon@gmail.com) with your experience/thoughts. Thanks!
+
+In the open source world it is difficult to get to know your users and their use cases & needs. In case you are using this library and enjoy it, feel free to send me an email (waechter.simon@gmail.com). For more important and time critical things like issues/bugs or feature enhancements, please use the isse tracker (It's not possible to keep up with all mails in a timely manner). Thanks!
 
 ## Installation
 
