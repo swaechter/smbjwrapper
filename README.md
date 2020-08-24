@@ -6,7 +6,7 @@ This project provides an object & hierarchy based wrapper API for the smbj proje
 
 ## Foreword
 
-In the open source world it is difficult to get to know your users and their use cases & needs. In case you are using this library and enjoy it, feel free to send me an email (waechter.simon@gmail.com). For more important and time critical things like issues/bugs or feature enhancements, please use the isse tracker (It's not possible to keep up with all mails in a timely manner). Thanks!
+In the open source world it is difficult to get to know your users and their use cases & needs. In case you are using this library and enjoy it, feel free to send me an email (waechter.simon@gmail.com). For more important and time critical things like issues/bugs or feature enhancements, please use the issue tracker (For me it's not possible to keep up with all mails in a timely manner). Thanks a lot!
 
 ## Installation
 
@@ -30,7 +30,9 @@ Provide a SLF4J logger backend implementation:
 </dependency>
 ```
 
-Note: You can also use a different backend implementation. For more information see https://www.slf4j.org/manual.html
+Notes:
+
+* You can also use a different backend implementation. For more information see https://www.slf4j.org/manual.html
 
 ## Usage
 
@@ -73,6 +75,25 @@ try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authe
 }
 ```
 
+The creation of the SMB connection takes some time (Maybe you are even initializing several connections in parallel). It is possible to enable the delayed initialization (disabled by default/eagerly initialized). Then, the first API call that requires a connection will establish the connection:
+
+```java
+SmbConfig smbConfig = SmbConfig.builder().build();
+AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN");
+try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authenticationContext, smbConfig, true)) {
+    // Do your work, first API call that requires the connection will establish it internally
+}
+```
+
+For long living SMB connections, there is also the possibility to check if the connection is alive and to refresh the internal connection (E.g. you write some log entries every hour and won't/can't recreate the connection):
+
+```java
+boolean isConnectionAlive = smbConnection.isConnectionAlive();
+if(!isConnectionAlive) {
+    smbConnection.ensureConnectionIsAlive();
+}
+```
+
 Notes:
 
 * The created connection is not thread safe. As soon you are using several threads, create a new connection for each thread.
@@ -109,9 +130,9 @@ try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authe
 }
 ```
 
-Note:
+Notes:
 
-* The given entry path is fully accessed and filtered/searched on the client side (There is no support for server side filtering). This can lead to performance issue with large file trees.
+* The given entry path is fully accessed and filtered/searched on the client side (There is no support for server side filtering). This can lead to performance issue with large file/directory trees.
 
 ### Access a directory/file and get more information
 
@@ -196,7 +217,7 @@ try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authe
 
 ### Copy a file on the same server share
 
-Copy a file on the same server share (In case they are different shares, use the download/upload bellow):
+Copy a file on the same server share (In case they are different shares, use the download/upload bellow). For more information check out the Samba documentation (https://wiki.samba.org/index.php/Server-Side_Copy):
 
 ```java
 try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authenticationContext)) {
@@ -222,7 +243,7 @@ try (SmbConnection smbConnection = new SmbConnection("127.0.0.1", "Share", authe
 
 Notes:
 
-* You can only rename and replace a path of the same type (File/Directory). For example it's not possible to rename and replace a file to an existing directory and vica versa
+* You can only rename and replace a path of the same type (File/Directory). For example it's not possible to rename and replace a file to an existing directory and vice versa
 
 ### Ensure a directory exist
 
