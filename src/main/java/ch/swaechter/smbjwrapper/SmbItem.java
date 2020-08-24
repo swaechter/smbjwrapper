@@ -214,6 +214,39 @@ public abstract class SmbItem {
     }
 
     /**
+     * Build the proper item path for a path and a name. The problem is, that items in the share root don't have a parent path and thus
+     * no separator should be prepended.
+     *
+     * @param path Path
+     * @param name Name to append
+     * @return Path with the file name
+     */
+    protected static String buildProperItemPath(String path, String name) {
+        if (!path.isEmpty()) { // Example: Dir + / + File
+            return path + PATH_SEPARATOR + name;
+        } else { // Example: File
+            return name;
+        }
+    }
+
+    /**
+     * Check if the SMB item name is valid and does not contain some invalid characters
+     *
+     * @param itemName Item name to be checked
+     * @return Status of the check
+     */
+    protected static boolean isValidSmbItemName(String itemName) {
+        switch (itemName) {
+            case ".":
+            case "..":
+            case "/":
+                return false;
+            default:
+                return true;
+        }
+    }
+
+    /**
      * Check if the current and the given objects are equals.
      *
      * @param object Given object to compare against

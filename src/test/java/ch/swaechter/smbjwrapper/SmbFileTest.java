@@ -65,7 +65,7 @@ public class SmbFileTest extends BaseTest {
      */
     @ParameterizedTest
     @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
-    public void testAppendedUpload(TestConnection testConnection) throws Exception {
+    public void testAppendedUploadAndDownload(TestConnection testConnection) throws Exception {
         try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
             // Create the entry point directory
             SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
@@ -114,50 +114,64 @@ public class SmbFileTest extends BaseTest {
      */
     @ParameterizedTest
     @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
-    public void testRenaming(TestConnection testConnection) throws Exception {
+    public void testRenamingTo(TestConnection testConnection) throws Exception {
         try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Create a first file in the root directory
+            SmbDirectory shareRootDirectory = new SmbDirectory(smbConnection);
+            SmbFile smbFile1 = shareRootDirectory.createFileInCurrentDirectory("File1");
+            Assertions.assertTrue(smbFile1.isExisting());
+
+            // Rename it
+            SmbFile smbFile1New = smbFile1.renameTo("File1New", false);
+            Assertions.assertFalse(smbFile1.isExisting());
+            Assertions.assertTrue(smbFile1New.isExisting());
+
+            // Cleanup
+            smbFile1New.deleteFile();
+            Assertions.assertFalse(smbFile1New.isExisting());
+
             // Create the entry point directory
             SmbDirectory transferDirectory = new SmbDirectory(smbConnection, buildUniquePath());
             transferDirectory.createDirectory();
-
-            // Create a first file
-            SmbFile smbFile1 = transferDirectory.createFileInCurrentDirectory("File1");
-            Assertions.assertTrue(smbFile1.isExisting());
 
             // Create a second file
             SmbFile smbFile2 = transferDirectory.createFileInCurrentDirectory("File2");
             Assertions.assertTrue(smbFile2.isExisting());
 
+            // Create a third file
+            SmbFile smbFile3 = transferDirectory.createFileInCurrentDirectory("File3");
+            Assertions.assertTrue(smbFile3.isExisting());
+
             // Create a first directory
             SmbDirectory smbDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory1");
-            Assertions.assertTrue(smbFile1.isExisting());
+            Assertions.assertTrue(smbFile2.isExisting());
 
             // Do a regular rename
-            smbFile1 = smbFile1.renameTo("File1New", false);
-            Assertions.assertEquals("File1New", smbFile1.getName());
-            Assertions.assertEquals(transferDirectory.getPath() + "/File1New", smbFile1.getPath());
+            SmbFile smbFile2New = smbFile2.renameTo("File2New", false);
+            Assertions.assertEquals("File2New", smbFile2New.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File2New", smbFile2New.getPath());
 
             // Do a rename and trigger an exception
             try {
-                smbFile1 = smbFile1.renameTo("File2", false);
+                smbFile2New.renameTo("File3", false);
                 Assertions.fail("Rename without replace flag should fail");
             } catch (Exception exception) {
-                Assertions.assertEquals("File1New", smbFile1.getName());
-                Assertions.assertEquals(transferDirectory.getPath() + "/File1New", smbFile1.getPath());
+                Assertions.assertEquals("File2New", smbFile2New.getName());
+                Assertions.assertEquals(transferDirectory.getPath() + "/File2New", smbFile2New.getPath());
             }
 
             // Do a replace rename
-            smbFile1 = smbFile1.renameTo("File2", true);
-            Assertions.assertEquals("File2", smbFile1.getName());
-            Assertions.assertEquals(transferDirectory.getPath() + "/File2", smbFile1.getPath());
+            smbFile3 = smbFile2New.renameTo("File3", true);
+            Assertions.assertEquals("File3", smbFile3.getName());
+            Assertions.assertEquals(transferDirectory.getPath() + "/File3", smbFile3.getPath());
 
             // Do a rename to a directory and trigger an exception
             try {
-                smbFile1 = smbFile1.renameTo("Directory1", true);
+                smbFile3.renameTo("Directory1", true);
                 Assertions.fail("Rename a file to a directory should fail");
             } catch (Exception eception) {
-                Assertions.assertTrue(smbFile1.isExisting());
-                Assertions.assertEquals("File2", smbFile1.getName());
+                Assertions.assertTrue(smbFile3.isExisting());
+                Assertions.assertEquals("File3", smbFile3.getName());
                 Assertions.assertTrue(smbDirectory1.isDirectory());
             }
         }

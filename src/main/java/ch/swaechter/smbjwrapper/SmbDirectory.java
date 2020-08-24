@@ -154,7 +154,7 @@ public final class SmbDirectory extends SmbItem {
     @Override
     public SmbDirectory renameTo(String newDirectoryName, boolean replaceIfExist) {
         try (Directory directory = getDiskShare().openDirectory(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null)) {
-            String newDirectoryPath = getParentPath().getPath() + PATH_SEPARATOR + newDirectoryName;
+            String newDirectoryPath = buildProperItemPath(getParentPath().getPath(), newDirectoryName);
             directory.rename(newDirectoryPath, replaceIfExist);
             return new SmbDirectory(getSmbConnection(), newDirectoryPath);
         }

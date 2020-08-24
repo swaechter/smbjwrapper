@@ -113,7 +113,7 @@ public final class SmbFile extends SmbItem {
      */
     public SmbFile renameTo(String newFileName, boolean replaceIfExist) {
         try (File file = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null)) {
-            String newFilePath = getParentPath().getPath() + PATH_SEPARATOR + newFileName;
+            String newFilePath = buildProperItemPath(getParentPath().getPath(), newFileName);
             file.rename(newFilePath, replaceIfExist);
             return new SmbFile(getSmbConnection(), newFilePath);
         }
