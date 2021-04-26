@@ -16,7 +16,7 @@ Import the dependency:
 <dependency>
     <groupId>ch.swaechter</groupId>
     <artifactId>smbjwrapper</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -36,7 +36,7 @@ Notes:
 
 ## Usage
 
-### Create a SMB connection to the server
+### Create an SMB connection to the server via server/share name
 
 Via anonymous user:
 
@@ -98,6 +98,32 @@ Notes:
 
 * The created connection is not thread safe. As soon you are using several threads, create a new connection for each thread.
 * You don't have to use the try-with-resources statement that automatically closes the connection. You can also close the connection manually.
+
+### Create an SMB connection to the server via UNC path
+
+In many cases you won't receive the server/share/path separated, but as one combined UNC path (Example: `\\127.0.0.1\Share\Directory\File`). It is possible to parse this UNC path and return an SMB item:
+
+```java
+AuthenticationContext authenticationContext = new AuthenticationContext("USERNAME", "PASSWORD".toCharArray(), "DOMAIN");
+SmbItem smbItem = SmbUtils.buildSmbItemFromUncPath(authenticationContext, CreationStrategy.EXCEPTION, "\\\\127.0.0.1\\Share\\Directory\\File");
+try (SmbConnection smbConnection = smbItem.getSmbConnection()) {
+    if (smbItem instanceof SmbDirectory) {
+        // It's a directory
+        SmbDirectory smbDirectory = (SmbDirectory) smbItem;
+    } else if (smbItem instanceof SmbFile) {
+        // It's a file
+        SmbFile smbFile = (SmbFile) smbItem;
+    }
+}
+```
+
+One important parameter is the `CreationStrategy`: If the path exists, it is possible to detect the type of it (File/directory, other), but hot to handle a situation where the path doesn't exist (E.g. system gets the UNC path to create the directory)? Thus, the developer has to specify the path strategy if the path doesn't exist:
+
+* DIRECTORY: Return a `SmbDirectory` if the path does not exist
+* FILE: Return a `SmbFile` if the path does not exist
+* EXCEPTION: Throw an `IOException` if the path does not exist
+
+Important: The creation strategy is only used when the path does not exist! If the path exists, the type will be determined at runtime.
 
 ### Access the root share and list all directories and files
 
