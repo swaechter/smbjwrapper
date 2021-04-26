@@ -43,11 +43,29 @@ public abstract class SmbItem {
      */
     public SmbItem(SmbConnection smbConnection, String pathName) {
         this.smbConnection = smbConnection;
-        if (SmbUtils.isValidSmbItemName(pathName)) {
+        if (isValidSmbItemName(pathName)) {
             this.pathName = pathName;
         } else {
             throw new RuntimeException("The given path name is not a valid SMB path");
         }
+    }
+
+    /**
+     * Get the SMB connection.
+     *
+     * @return SMB connection
+     */
+    public SmbConnection getSmbConnection() {
+        return smbConnection;
+    }
+
+    /**
+     * Get the disk share of the SMB connection.
+     *
+     * @return Disk share of the SMB connection
+     */
+    public DiskShare getDiskShare() {
+        return getSmbConnection().getDiskShare();
     }
 
     /**
@@ -253,24 +271,6 @@ public abstract class SmbItem {
      * @return Status of the check
      */
     public abstract boolean equals(Object object);
-
-    /**
-     * Get the SMB connection.
-     *
-     * @return SMB connection
-     */
-    protected SmbConnection getSmbConnection() {
-        return smbConnection;
-    }
-
-    /**
-     * Get the disk share of the SMB connection.
-     *
-     * @return Disk share of the SMB connection
-     */
-    protected DiskShare getDiskShare() {
-        return getSmbConnection().getDiskShare();
-    }
 
     /**
      * Rename the current item and return it as newly renamed item. Renames are only possible from/to the same type. For example it's not possible to

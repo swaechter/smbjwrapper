@@ -189,7 +189,7 @@ public final class SmbDirectory extends SmbItem {
         for (FileIdBothDirectoryInformation fileIdBothDirectoryInformation : getDiskShare().list(smbDirectoryPath)) {
             String fileName = fileIdBothDirectoryInformation.getFileName();
             String filePath = (smbDirectoryPath.isEmpty()) ? fileName : smbDirectoryPath + PATH_SEPARATOR + fileName;
-            if (SmbUtils.isValidSmbItemName(fileName)) {
+            if (isValidSmbItemName(fileName)) {
                 FileAllInformation fileAllInformation = getDiskShare().getFileInformation(filePath);
                 if (fileAllInformation.getStandardInformation().isDirectory()) {
                     SmbDirectory smbDirectory = new SmbDirectory(getSmbConnection(), filePath);

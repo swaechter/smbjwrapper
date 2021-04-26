@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Date;
 
 public class SmbItemTest extends BaseTest {
@@ -151,6 +152,30 @@ public class SmbItemTest extends BaseTest {
             // Clean up
             transferDirectory.deleteDirectoryRecursively();
             Assertions.assertFalse(transferDirectory.isExisting());
+        }
+    }
+
+    /**
+     * Test the valid and invalid SMB item names.
+     */
+    @ParameterizedTest
+    @MethodSource("ch.swaechter.smbjwrapper.helpers.BaseTest#getTestConnections")
+    public void testIsValidSharedItemName(TestConnection testConnection) throws Exception {
+        try (SmbConnection smbConnection = new SmbConnection(testConnection.getHostName(), testConnection.getShareName(), testConnection.getAuthenticationContext())) {
+            // Test invalid paths
+            for (String invalidPath : Arrays.asList(".", "..", "/")) {
+                try {
+                    new SmbDirectory(smbConnection, invalidPath);
+                    Assertions.fail("SMB directory should fail");
+                } catch (Exception exception) {
+                    Assertions.assertEquals("The given path name is not a valid SMB path", exception.getMessage());
+                }
+            }
+
+            // Test the valid paths
+            for (String invalidPath : Arrays.asList("File", "Directory")) {
+                new SmbDirectory(smbConnection, invalidPath);
+            }
         }
     }
 }
