@@ -2,6 +2,7 @@ package ch.swaechter.smbjwrapper.streams;
 
 import com.hierynomus.smbj.share.File;
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
- * This class provides a test for the shared input stream.
+ * This class provides a test for the SMB input stream.
  *
  * @author Simon Wächter
  */
@@ -22,8 +23,7 @@ public class SmbInputStreamTest {
      *
      * @throws IOException Exception in case of a problem
      */
-    // TODO: Re-enable test when Mockito-inline on Java 17 works
-    //@Test
+    @Test
     public void testSmbInputStream() throws IOException {
         // Create a spy input stream object
         String testData = "Hello";

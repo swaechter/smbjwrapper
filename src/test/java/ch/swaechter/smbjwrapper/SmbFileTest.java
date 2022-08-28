@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,23 +35,53 @@ public class SmbFileTest extends BaseTest {
             SmbDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Subdirectory1");
 
             // Upload a file
-            InputStream inputStream = new FileInputStream(new File("src/test/resources/Screenshot.png"));
+            File file = new File("src/test/resources/Screenshot.png");
+            assertTrue(file.exists());
+            byte[] expectedData = Files.readAllBytes(file.toPath());
+            long expectedSize = file.length();
+
+            InputStream inputStream = new FileInputStream(file);
             assertNotNull(inputStream);
 
-            SmbFile subFile2_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.txt");
+            SmbFile subFile2_1 = subDirectory1.createFileInCurrentDirectory("Subfile1.png");
             OutputStream outputStream = subFile2_1.getOutputStream();
             IOUtils.copy(inputStream, outputStream);
             inputStream.close();
             outputStream.close();
 
-            // Transfer/download a file
-            SmbFile subFile2_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.txt");
+            assertEquals(expectedSize, subFile2_1.getFileSize());
+
+            // Transfer/download a file via SmbOutputStream.write(buffer) method
+            SmbFile subFile2_2 = subDirectory1.createFileInCurrentDirectory("Subfile2.png");
             inputStream = subFile2_1.getInputStream();
             outputStream = subFile2_2.getOutputStream();
 
             IOUtils.copy(inputStream, outputStream);
             inputStream.close();
             outputStream.close();
+
+            // Check the file size
+            assertEquals(37888, subFile2_2.getFileSize());
+
+            // Check the file content
+            inputStream = subFile2_2.getInputStream();
+            byte[] readData = IOUtils.toByteArray(inputStream);
+            assertArrayEquals(expectedData, readData);
+            inputStream.close();
+
+            // Write a file via SmbOutputStream.write(buffer, offset length) method
+            outputStream = subFile2_2.getOutputStream();
+            outputStream.write(expectedData, 0, expectedData.length);
+            outputStream.close();
+
+            // Check the file size
+            assertEquals(37888, subFile2_2.getFileSize());
+
+            // Check the file content
+            inputStream = subFile2_2.getInputStream();
+            readData = IOUtils.toByteArray(inputStream);
+            assertArrayEquals(expectedData, readData);
+            inputStream.close();
 
             // Clean up
             transferDirectory.deleteDirectoryRecursively();
@@ -83,7 +114,9 @@ public class SmbFileTest extends BaseTest {
 
             // Do a first non-appended upload
             OutputStream outputStream1 = testFile.getOutputStream();
-            outputStream1.write(testData1.getBytes(StandardCharsets.UTF_8));
+            for (byte character : testData1.getBytes(StandardCharsets.UTF_8)) {
+                outputStream1.write(character);
+            }
             outputStream1.close();
 
             InputStream inputStream1 = testFile.getInputStream();
