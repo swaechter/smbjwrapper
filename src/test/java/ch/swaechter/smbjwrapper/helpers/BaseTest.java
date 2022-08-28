@@ -11,7 +11,7 @@ public abstract class BaseTest {
 
     public static Stream<TestConnection> getTestConnections() {
         return Stream.of(
-            new TestConnection("127.0.0.1", "Share", new AuthenticationContext("documentmanager", "123456aA".toCharArray(), ""))
+            new TestConnection("127.0.0.1", "Share", new AuthenticationContext("documentmanager", "123456aAbB".toCharArray(), ""))
         );
     }
 

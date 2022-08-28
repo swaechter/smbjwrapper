@@ -1,7 +1,9 @@
 package ch.swaechter.smbjwrapper.utils;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * This class is responsible for testing the util methods.
@@ -15,10 +17,10 @@ public class SmbUtilsTest {
      */
     @Test
     public void testIsValidSharedItemName() {
-        Assertions.assertFalse(SmbUtils.isValidSmbItemName("."));
-        Assertions.assertFalse(SmbUtils.isValidSmbItemName(".."));
-        Assertions.assertFalse(SmbUtils.isValidSmbItemName("/"));
-        Assertions.assertTrue(SmbUtils.isValidSmbItemName("Directory"));
-        Assertions.assertTrue(SmbUtils.isValidSmbItemName("File.txt"));
+        assertFalse(SmbUtils.isValidSmbItemName("."));
+        assertFalse(SmbUtils.isValidSmbItemName(".."));
+        assertFalse(SmbUtils.isValidSmbItemName("/"));
+        assertTrue(SmbUtils.isValidSmbItemName("Directory"));
+        assertTrue(SmbUtils.isValidSmbItemName("File.txt"));
     }
 }

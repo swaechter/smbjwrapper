@@ -3,12 +3,13 @@ package ch.swaechter.smbjwrapper;
 import ch.swaechter.smbjwrapper.helpers.BaseTest;
 import ch.swaechter.smbjwrapper.helpers.TestConnection;
 import org.apache.commons.io.IOUtils;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.*;
 import java.util.Date;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SmbItemTest extends BaseTest {
 
@@ -28,14 +29,14 @@ public class SmbItemTest extends BaseTest {
 
             // Create a hidden Linux file
             SmbFile subFile = transferDirectory.createFileInCurrentDirectory(".notahiddenfile.txt");
-            Assertions.assertTrue(subFile.isExisting());
+            assertTrue(subFile.isExisting());
 
             // Check if the file is hidden. This depends on the SMB server configuration. For more information read the Javadoc & referenced links there.
             subFile.isHidden();  // Test is a bit useless, so at least prevent crashes
 
             // Clean up
             transferDirectory.deleteDirectoryRecursively();
-            Assertions.assertFalse(transferDirectory.isExisting());
+            assertFalse(transferDirectory.isExisting());
         }
     }
 
@@ -57,18 +58,18 @@ public class SmbItemTest extends BaseTest {
             // Create a temporary file
             File contentFile = new File("src/test/resources/Screenshot.png");
             File tempFile = File.createTempFile("smbjwrapper", ".tmp");
-            Assertions.assertTrue(tempFile.exists());
+            assertTrue(tempFile.exists());
 
             // Create a directory
             SmbDirectory subDirectory1 = transferDirectory.createDirectoryInCurrentDirectory("Directory");
-            Assertions.assertTrue(subDirectory1.isExisting());
+            assertTrue(subDirectory1.isExisting());
 
             // Create a file
             SmbFile subFile1 = subDirectory1.createFileInCurrentDirectory("File1.txt");
-            Assertions.assertTrue(subFile1.isExisting());
+            assertTrue(subFile1.isExisting());
 
             // Check the file size
-            Assertions.assertEquals(0, subFile1.getFileSize());
+            assertEquals(0, subFile1.getFileSize());
 
             // Get the current date and check the creation time
             Date checkDate1 = new Date();
@@ -89,11 +90,11 @@ public class SmbItemTest extends BaseTest {
             outputStream1.close();
 
             // Check the download file size
-            Assertions.assertEquals(0, tempFile.length());
+            assertEquals(0, tempFile.length());
 
             // Trigger another file creation
             SmbFile subFile2 = subDirectory1.createFileInCurrentDirectory("File2.txt");
-            Assertions.assertTrue(subFile2.isExisting());
+            assertTrue(subFile2.isExisting());
 
             // Check the last access time
             Date checkDate2 = new Date();
@@ -114,7 +115,7 @@ public class SmbItemTest extends BaseTest {
             outputStream2.close();
 
             // Check the file size
-            Assertions.assertEquals(37888, subFile1.getFileSize());
+            assertEquals(37888, subFile1.getFileSize());
 
             // Check the last write time
             Date checkDate3 = new Date();
@@ -135,7 +136,7 @@ public class SmbItemTest extends BaseTest {
             outputStream3.close();
 
             // Check the download file size
-            Assertions.assertEquals(37888, tempFile.length());
+            assertEquals(37888, tempFile.length());
 
             // Check the last access time
             Date checkDate4 = new Date();
@@ -150,7 +151,7 @@ public class SmbItemTest extends BaseTest {
 
             // Clean up
             transferDirectory.deleteDirectoryRecursively();
-            Assertions.assertFalse(transferDirectory.isExisting());
+            assertFalse(transferDirectory.isExisting());
         }
     }
 }
