@@ -58,7 +58,7 @@ public final class SmbFile extends SmbItem {
      */
     public void copyFileViaServerSideCopy(SmbFile destinationSmbFile) throws Buffer.BufferException, TransportException {
         try (
-            File sourceFile = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null);
+            File sourceFile = getDiskShare().openFile(getPath(), EnumSet.of(AccessMask.GENERIC_READ), null, EnumSet.of(SMB2ShareAccess.FILE_SHARE_READ, SMB2ShareAccess.FILE_SHARE_DELETE), SMB2CreateDisposition.FILE_OPEN, null);
             File destinationFile = getDiskShare().openFile(destinationSmbFile.getPath(), EnumSet.of(AccessMask.GENERIC_ALL), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OVERWRITE_IF, null);
         ) {
             sourceFile.remoteCopyTo(destinationFile);
