@@ -150,8 +150,11 @@ public class SmbDirectoryTest extends BaseTest {
                 assertEquals(0, subDirectory1.getDirectories().size());
                 assertEquals(2, subDirectory1.getFiles().size());
 
-                // Recreate the directory
+                // Clean up
                 transferDirectory.deleteDirectoryRecursively();
+                assertFalse(transferDirectory.isExisting());
+                transferFile.deleteFile();
+                assertFalse(transferFile.isExisting());
             }
         }
     }
@@ -191,6 +194,10 @@ public class SmbDirectoryTest extends BaseTest {
                 assertTrue(fileName.equals(subFile1.getName()) || fileName.equals(subFile2.getName()));
                 assertTrue(smbFile.isExisting());
             }
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 
@@ -230,6 +237,10 @@ public class SmbDirectoryTest extends BaseTest {
             sourceFile.copyFileViaServerSideCopy(destinationFile);
             assertTrue(destinationFile.isExisting());
             assertEquals(sourceFile.getFileSize(), destinationFile.getFileSize());
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 
@@ -268,6 +279,10 @@ public class SmbDirectoryTest extends BaseTest {
             } catch (IllegalStateException exception) {
                 assertEquals("The given path does already exist, but not as directory", exception.getMessage());
             }
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 
@@ -339,6 +354,10 @@ public class SmbDirectoryTest extends BaseTest {
                 assertEquals("Directory3", smbDirectory3.getName());
                 assertTrue(smbFile1.isFile());
             }
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 
@@ -405,6 +424,10 @@ public class SmbDirectoryTest extends BaseTest {
             assertEquals(transferDirectory.getPath() + "/Dir1/Dir2/File1", smbItems5a.get(0).getPath());
             assertEquals(transferDirectory.getPath() + "/File1", smbItems5a.get(1).getPath());
             assertEquals(smbItems5a, smbItems5b);
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 }

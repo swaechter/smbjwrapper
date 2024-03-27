@@ -121,6 +121,7 @@ public class SmbFileTest extends BaseTest {
 
             InputStream inputStream1 = testFile.getInputStream();
             assertEquals(testData1, IOUtils.toString(inputStream1, StandardCharsets.UTF_8));
+            inputStream1.close();
 
             // Do a second appended upload
             OutputStream outputStream2 = testFile.getOutputStream(true);
@@ -129,6 +130,7 @@ public class SmbFileTest extends BaseTest {
 
             InputStream inputStream2 = testFile.getInputStream();
             assertEquals(testData1 + testData2, IOUtils.toString(inputStream2, StandardCharsets.UTF_8));
+            inputStream2.close();
 
             // Do a third appended upload
             OutputStream outputStream3 = testFile.getOutputStream(true);
@@ -137,6 +139,11 @@ public class SmbFileTest extends BaseTest {
 
             InputStream inputStream3 = testFile.getInputStream();
             assertEquals(testData1 + testData2 + testData3, IOUtils.toString(inputStream3, StandardCharsets.UTF_8));
+            inputStream3.close();
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 
@@ -208,6 +215,10 @@ public class SmbFileTest extends BaseTest {
                 assertEquals("File3", smbFile3.getName());
                 assertTrue(smbDirectory1.isDirectory());
             }
+
+            // Clean up
+            transferDirectory.deleteDirectoryRecursively();
+            assertFalse(transferDirectory.isExisting());
         }
     }
 }
