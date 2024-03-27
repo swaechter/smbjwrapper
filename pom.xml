@@ -6,7 +6,7 @@
     <artifactId>smbjwrapper</artifactId>
     <version>1.3.0</version>
     <packaging>jar</packaging>
-    <name>smbjwraper</name>
+    <name>smbjwrapper</name>
     <description>A wrapper for the SMB library smbjwrapper</description>
     <url>https://github.com/swaechter/smbjwrapper</url>
     <licenses>
